@@ -7,8 +7,8 @@ from time import sleep
 from threading import Thread
 from optparse import OptionParser
 
-jython_lib = '/usr/local/Cellar/jython/2.5.3/libexec/Lib'
-# jython_lib = '/home/chris/jython2.5.3/Lib'
+# jython_lib = '/usr/local/Cellar/jython/2.5.3/libexec/Lib'
+jython_lib = '/home/chris/jython2.5.3/Lib'
 sys.path.append("%s/site-packages/simplejson-3.6.3-py2.5.egg" % jython_lib)
 import simplejson as json
 
@@ -61,37 +61,48 @@ def net_command():
 
 # monkeyrunner run_android_qq.py --qq 3040493963
 # monkeyrunner run_android_qq.py --qq 3067487368
+# monkeyrunner run_android_qq.py --qq 2902424837
+# monkeyrunner run_android_qq.py --qq 2195356784
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("--qq",    dest="qq")
-    # parser.add_option("--port",  dest="port")
-    # parser.add_option("--role",  dest="role")
     (options, args) = parser.parse_args()
 
-    robot_url = 'http://0.0.0.0:8017/net_command'
-    # robot_url = 'http://192.168.217.191:8001/net_command'
+    # robot_url = 'http://0.0.0.0:8017/net_command'
+    robot_url = 'http://192.168.217.191:8001/net_command'
 
     localIp = get_local_ip()
     qqs = {
+        '2902424837': {
+            'qqId':'2902424837',
+            'qqName':'',
+            'ip':localIp,
+            'port':'8001',
+            'deviceid':'emulator-5554',
+            'robot_url':robot_url,
+        },
+        '2195356784': {
+            'qqId':'2195356784',
+            'qqName':'',
+            'ip':localIp,
+            'port':'8002',
+            'deviceid':'emulator-5556',
+            'robot_url':robot_url,
+        },
         '3040493963': {
             'qqId':'3040493963',
             'qqName':'',
             'ip':localIp,
-            'port':'8001',
-            'url':'',
-            # 'deviceid':'emulator-5554',
-            'deviceid':'192.168.56.101:5555',
-            'role':'a',
+            'port':'8003',
+            'deviceid':'emulator-5558',
             'robot_url':robot_url,
         },
         '3067487368': {
             'qqId':'3067487368',
             'qqName':'',
             'ip':localIp,
-            'port':'8002',
-            'url':'',
-            'deviceid':'emulator-5556',
-            'role':'b',
+            'port':'8004',
+            'deviceid':'emulator-5560',
             'robot_url':robot_url,
         },
     }
@@ -101,7 +112,7 @@ if __name__ == '__main__':
     global md
     md = MonkeyDaemon(qqs[options.qq])
     print '------------Now, Android QQ daemon is running for %s %s on url %s ----------' \
-            % (md.qq['qqName'], md.qq['qqId'], md.qq['url'])
+            % (md.qq['qqName'].decode('utf8'), md.qq['qqId'], md.qq['url'])
 
     th = Thread(target=start_listen, args=[ md.qq['port'] ])
     th.setDaemon(True)
