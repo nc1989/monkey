@@ -26,7 +26,7 @@ def run_cmd(cmd, with_error = False):
 
 def is_pure_alnum(text):
     tmp_text = text.encode('utf8')
-    print(tmp_text)
+    # print(tmp_text)
     for i in tmp_text:
         if i.lower() not in \
             "".join([string.ascii_lowercase,\
@@ -43,7 +43,7 @@ def get_encoded_character(deviceid,text):
     click_dpad_space = "adb " + "-s " + deviceid + " shell input keyevent KEYCODE_SPACE"
     # log("%r"%text)
     run_cmd(start_app)
-    time.sleep(0.5)
+    time.sleep(1)
     text_list = text.split()
     log(text_list)
     text_list = [x.encode('utf8') if is_pure_alnum(x) else x for x in text_list]

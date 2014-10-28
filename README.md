@@ -14,7 +14,7 @@ Android QQ的后台daemon程序,提供针对QQ的基本的底层API.
 ## APIs
 
 1, enter_group
-# 进入制定的QQ群
+# 进入指定的QQ群
 # params:
 	{
 		'cmd': 'enter_group',
@@ -56,7 +56,7 @@ Android QQ的后台daemon程序,提供针对QQ的基本的底层API.
 
 
 3, send_msg
-# 发送消息
+# 发送群消息
 # params:
 	{
 		'cmd': 'send_msg',
