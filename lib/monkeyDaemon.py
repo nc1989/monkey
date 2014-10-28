@@ -22,6 +22,7 @@ class MonkeyDaemon(object):
         print '-------- MonkeyDaemon __init__ ---------'
         self.qq = qq
         self.qq['url'] = 'http://%s:%s/net_command' % (qq['ip'],qq['port'])
+        self.qq['listfile'] = './grouplist/%s.grouplist' % self.qq['qqId']
 
         # add a api to get pure group list, on-going
         self.screenUsing = 0
@@ -42,7 +43,10 @@ class MonkeyDaemon(object):
         if self.restart_qq_monkey() != 0:
             sys.exit(-1)
         self.get_qqName_monkey()
-        self.get_pure_group_list_monkey()
+        if self.get_grouplist() != 0:
+            self.get_pure_group_list_monkey()
+            self.write_grouplist()
+        # self.get_pure_group_list_monkey()
         self.register_monkey()
 
     def monkey_set_up(self):
@@ -352,12 +356,29 @@ class MonkeyDaemon(object):
         self.device.drag((1000, 150),(300, 150),0.5,1)
         return 0
 
+    def get_grouplist(self):
+        if not os.path.isfile(self.qq['listfile']):
+            return 1
+        f = open(self.qq['listfile'],'r')
+        self.groupList = json.loads(f.read())
+        f.close()
+        return 0
+
+    def write_grouplist(self):
+        if not os.path.isfile(self.qq['listfile']):
+            os.system('touch %s' % self.qq['listfile'])
+            return 1
+        f = open(self.qq['listfile'],'w')
+        f.write(json.dumps(self.groupList).encode('utf8'))
+        f.close()
+        return 0
+
     def get_pure_group_list_monkey(self):
         print '------------ get_pure_group_list_monkey ------------'
         self.groupListUpdating = 1
         if self.touch_to_enter_grouplist() != 0:
             return -1
-        for drag in range(0,8):
+        for drag in range(0,10):
             if self.is_info() == 0:
                 self.touch_to_leave()
             if self.is_group() == 0:
@@ -466,6 +487,20 @@ class MonkeyDaemon(object):
         url_post(self.qq['robot_url'], data)
         return 0
 
+    def heartbeat_monkey(self):
+        print '------------ register_monkey ------------'
+        groupList = [{'groupId': key, 'groupName': value['groupName']}
+                     for key, value in self.groupList.iteritems()]
+        data = {
+            'cmd': 'heartbeat',
+            'qq': self.qq['qqId'],
+            'qqName': self.qq['qqName'],
+            'url':self.qq['url'],
+            'groupList': json.dumps(groupList)
+        }
+        url_post(self.qq['robot_url'], data)
+        return 0
+
     def monkey_task_loop(self):
         print '------------ monkey_task_loop start ------------'
         # this should never return        
@@ -477,6 +512,8 @@ class MonkeyDaemon(object):
                 self.heartbeat += 1
                 if self.heartbeat == 1200:
                     self.get_pure_group_list_monkey()
+                    # self.write_grouplist()
+                    self.heartbeat_monkey()
                     self.heartbeat = 0
             else:
                 self.heartbeat = 0
@@ -602,8 +639,8 @@ class MonkeyDaemon(object):
         print '\n------------ send_msg ------------'
         if not data.get('msg'):
             return -1        
-        if self.is_current_group() != 0:
-            return -1
+        # if self.is_current_group() != 0:
+        #     return -1
 
         get_encoded_character(self.qq['deviceid'], data['msg'].decode('utf8'))
         self.restart_qq_monkey()
@@ -629,9 +666,9 @@ class MonkeyDaemon(object):
 
     def get_msgs(self,data):
         print '\n------------ get_msgs ------------'
-        if self.is_current_group() != 0:
-            ret = []
-            return ret        
+        # if self.is_current_group() != 0:
+        #     ret = []
+        #     return ret
         # 针对新消息的提示处理
         for i in range(0,3):
             self.device.drag((1080/2, 1550),(1080/2, 500),0.2,1)
