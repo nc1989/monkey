@@ -112,10 +112,14 @@ class MonkeyDaemon(object):
     def is_info(self):
         # print '------------ is_info ------------'
         common_xlistview = None
-        try:
-            common_xlistview = self.get_hierarchy_view_by_id('id/common_xlistview')
-        except:
-            print "Error : failed to parse view id/common_xlistview !"
+        for i in range(0,3):
+            try:
+                common_xlistview = self.get_hierarchy_view_by_id('id/common_xlistview')
+                if common_xlistview:
+                    break
+            except:
+                print "Error : failed to parse view id/common_xlistview !"
+                continue
         if common_xlistview:
             # print "Info : already in the info !"
             return 0
@@ -353,7 +357,7 @@ class MonkeyDaemon(object):
         self.groupListUpdating = 1
         if self.touch_to_enter_grouplist() != 0:
             return -1
-        for drag in range(0,1):
+        for drag in range(0,8):
             if self.is_info() == 0:
                 self.touch_to_leave()
             if self.is_group() == 0:
@@ -471,7 +475,7 @@ class MonkeyDaemon(object):
             sleep(1)
             if self.screenUsing == 0:
                 self.heartbeat += 1
-                if self.heartbeat == 600:
+                if self.heartbeat == 1200:
                     self.get_pure_group_list_monkey()
                     self.heartbeat = 0
             else:
