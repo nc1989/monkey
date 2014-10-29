@@ -43,7 +43,7 @@ def get_encoded_character(deviceid,text):
     click_dpad_space = "adb " + "-s " + deviceid + " shell input keyevent KEYCODE_SPACE"
     # log("%r"%text)
     run_cmd(start_app)
-    time.sleep(1)
+    time.sleep(2)
     text_list = text.split()
     log(text_list)
     text_list = [x.encode('utf8') if is_pure_alnum(x) else x for x in text_list]

@@ -12,7 +12,7 @@ errfile="${logdir}/${qq}.err"
 start_android_qq()
 {
 	# md_pid=`pgrep -lf monkeyrunner | grep ${qq} | awk '{print $1}'`
-	md_pid=`ps -ef | grep monkeyrunner | grep -v grep | awk '{print $2}'`
+	md_pid=`ps -ef | grep monkeyrunner | grep ${qq} | grep -v grep | awk '{print $2}'`
 
 	if [ -z ${md_pid} ];then
 	echo ">>> Info : start the android qq for ${qq} !"
@@ -47,12 +47,17 @@ main()
 	while [ ${start_qq_success} -eq 0 ]
 	do
 		# grep "${err1}" ${errfile}
-		grep -E "${err1}|${err2}|${err3}|${err4}|${err5}" $errfile
+		grep -E "${err1}|${err2}|${err3}|${err4}|${err5}" ${errfile}
 		if [ $? -eq 0 ];then
 			echo "\n>>> Info : try again !"
 		    start_android_qq
 		else
-			start_qq_success=1
+			succ_info="Now, Android QQ daemon is running"
+			grep "${succ_info}" ${logfile}
+			if [ $? -eq 0 ];then
+				start_qq_success=1
+				break
+			fi
 		fi
 	done
 
