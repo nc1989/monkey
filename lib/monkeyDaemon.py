@@ -3,7 +3,7 @@
 
 import os
 import sys
-from time import sleep
+from time import sleep,time
 
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 from com.android.monkeyrunner.easy import EasyMonkeyDevice, By
@@ -46,7 +46,6 @@ class MonkeyDaemon(object):
         if self.get_grouplist() != 0:
             self.get_pure_group_list_monkey()
             self.write_grouplist()
-        # self.get_pure_group_list_monkey()
         self.register_monkey()
 
     def monkey_set_up(self):
@@ -79,7 +78,7 @@ class MonkeyDaemon(object):
         try:
             glow_pad_view = self.get_hierarchy_view_by_id('id/glow_pad_view')
             self.screenUsing = 1
-            self.device.drag((550, 1350),(1000, 1350),0.5,1)
+            self.device.drag((550, 1350),(1000, 1350),0.2,1)
             self.screenUsing = 0
             return 0
         except:
@@ -348,12 +347,12 @@ class MonkeyDaemon(object):
                 self.touch_to_leave()
         # if self.touchByMonkeyPixel(90,150) != 0:
         #     return -1
-        self.device.drag((300, 150),(1000, 150),0.5,1)
+        self.device.drag((300, 150),(1000, 150),0.2,1)
         nickname = self.get_hierarchy_view_by_id('id/nickname')
         self.qq['qqName'] = self.getTextByMonkeyView(nickname)
         # if self.touchByMonkeyPixel(1050,700) != 0:
         #     return -1
-        self.device.drag((1000, 150),(300, 150),0.5,1)
+        self.device.drag((1000, 150),(300, 150),0.2,1)
         return 0
 
     def get_grouplist(self):
@@ -367,7 +366,6 @@ class MonkeyDaemon(object):
     def write_grouplist(self):
         if not os.path.isfile(self.qq['listfile']):
             os.system('touch %s' % self.qq['listfile'])
-            return 1
         f = open(self.qq['listfile'],'w')
         f.write(json.dumps(self.groupList).encode('utf8'))
         f.close()
@@ -386,7 +384,7 @@ class MonkeyDaemon(object):
             print "Info : drag for %s time !" % drag
             if drag != 0:
                 try:
-                    self.device.drag((1080/2, 1700),(1080/2, 400),0.5,1)
+                    self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
                 except:
                     print "Error : failed for the %s drag !" % drag
 
@@ -430,7 +428,8 @@ class MonkeyDaemon(object):
                     continue
                 groupId = ''
                 if self.touchByMonkeyPixel(1080/2,item['UILocation']) == 0:
-                    groupId = self.get_group_id()
+                    if self.is_group() == 0:
+                        groupId = self.get_group_id()
                 if groupId in self.groupList.keys():
                     print "Info : this group %s %s has already exist !" % \
                         (item['groupName'],groupId)
@@ -452,9 +451,6 @@ class MonkeyDaemon(object):
     def get_group_id(self):
         # 此时位于群组会话中，点击进入到群组信息里边
         groupId = ''
-        if self.is_group() != 0:
-            print "Error : I am not in the group !"
-            return -1
         if self.touch_to_enter_info() != 0:
             return -1
         if self.is_info() != 0:
@@ -511,7 +507,7 @@ class MonkeyDaemon(object):
             if self.screenUsing == 0:
                 self.heartbeat += 1
                 if self.heartbeat == 1200:
-                    self.get_pure_group_list_monkey()
+                    # self.get_pure_group_list_monkey()
                     # self.write_grouplist()
                     self.heartbeat_monkey()
                     self.heartbeat = 0
@@ -533,11 +529,13 @@ class MonkeyDaemon(object):
         if self.currentGroup['groupId'] != data['group']:
             self.currentGroup['groupId'] = data['group']
             self.currentGroup['groupName'] = self.groupList[data['group']]['groupName']
+        
+        # 这两个大概13～15s ---
         if self.is_current_group() == 0:
             return 0
         if self.touch_to_enter_grouplist() != 0:
             return -1
-        
+
         groupId = ''
         # 通过possibleDrag来缩小查找范围。然后从该页的自己、前、后 三个界面查找。
         # 下一步，可以通过possibleIndex，在自己界面进一步缩小查找范围。
@@ -548,11 +546,12 @@ class MonkeyDaemon(object):
                 (possibleDrag, possibleUILocation, data['group'])
         if possibleDrag > 0:
             for i in range(0,possibleDrag):
-                self.device.drag((1080/2, 1700),(1080/2, 400),0.5,1)
+                self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
                 # sleep(1)
 
         # 现在，前，后的顺序查找三个界面
         for j in range(0,3):
+            # 大概1s
             if self.is_grouplist() != 0:
                 if self.is_info() == 0:
                     self.touch_to_leave()
@@ -561,38 +560,42 @@ class MonkeyDaemon(object):
             if possibleDrag == 0:
                 if j != 0:
                     # 向下drag一次
-                    self.device.drag((1080/2, 1700),(1080/2, 400),0.5,1)
+                    self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
             else:
                 if j == 1:
                     # 向上drag一次
-                    self.device.drag((1080/2, 400),(1080/2, 1700),0.5,1)
+                    self.device.drag((1080/2, 400),(1080/2, 1700),0.2,1)
                 if j == 2:
                     # 向下drag一次
-                    self.device.drag((1080/2, 1700),(1080/2, 400),0.5,1)
-                    self.device.drag((1080/2, 1700),(1080/2, 400),0.5,1)
+                    self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
+                    self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
 
             # 每次j==0的时候，首先看下possibleUILocation对应的group
             if j == 0:
-                for i in range(0,3):
-                    try:
-                        if self.touchByMonkeyPixel(1080/2,possibleUILocation) == 0:
-                            groupId = self.get_group_id()
-                    except:
-                        print "Error : failed to parse the possibleUILocation group !"
-                    if groupId == data['group']:
-                        return 0
-                    else:
-                        # 不是这个群，就退出至grouplist界面
-                        if self.is_info() == 0:
-                            self.touch_to_leave()
+                try:
+                    # 6s
+                    if self.touchByMonkeyPixel(1080/2,possibleUILocation) == 0:
                         if self.is_group() == 0:
-                            self.touch_to_leave()
-                        continue                   
+                            groupId = self.get_group_id()
+                except:
+                    print "Error : failed to parse the possibleUILocation group !"
+                if groupId == data['group']:
+                    return 0
+                else:
+                    # 不是这个群，就退出至grouplist界面
+                    print "Info : failed to enter group %s via possibleDrag %s , possibleUILocation %s !" % \
+                            (data['group'], possibleDrag, possibleUILocation)                    
+                    if self.is_info() == 0:
+                        self.touch_to_leave()
+                    if self.is_group() == 0:
+                        self.touch_to_leave()   
 
+            # < 1s
             qb_troop_list_view = self.get_hierarchy_view_by_id('id/qb_troop_list_view')
             if qb_troop_list_view == None:
                 continue
             _groupList = []
+            # 很快
             _groupList = qb_troop_list_view.children
             if _groupList == []:
                 print "Error : failed to parse view qb_troop_list_view !"
@@ -606,10 +609,13 @@ class MonkeyDaemon(object):
                     del _groupList[0]
 
             for group in _groupList:
+                # 2s ---
                 if self.is_info() == 0:
                     self.touch_to_leave()
+                # 1s
                 if self.is_group() == 0:
                     self.touch_to_leave()
+                # 1s
                 if self.is_grouplist() != 0:
                     return -1
                 # 我创建的群(16) 这样的一行
@@ -628,8 +634,11 @@ class MonkeyDaemon(object):
                 if UILocation < 370 or UILocation > 1760:
                     print "Info : skip this group in case we touch screen incorrectly !"
                     continue
-                if self.touchByMonkeyPixel(1080/2,UILocation) == 0:             
-                    groupId = self.get_group_id()
+                # 0.5s
+                if self.touchByMonkeyPixel(1080/2,UILocation) == 0:
+                    if self.is_group() == 0:
+                        # 5s ---                    
+                        groupId = self.get_group_id()
                     if groupId == data['group']:
                         return 0
         print "Error : failed to enter group %s !" % data['group']
@@ -643,21 +652,19 @@ class MonkeyDaemon(object):
         #     return -1
 
         get_encoded_character(self.qq['deviceid'], data['msg'].decode('utf8'))
-        self.restart_qq_monkey()
+        # self.restart_qq_monkey()
 
         self.easy_device.touch(By.id("id/input"), self.easy_device.DOWN)
-        # self.device.touch(500,1700,'DOWN')
         sleep(0.5)
         self.easy_device.touch(By.id("id/input"), self.easy_device.UP)
-        # self.device.touch(500,1700,'UP')
-        # sleep(1)
         self.touchByMonkeyPixel(270,1590)
-
+        # 1s
         inputid = self.get_hierarchy_view_by_id('id/input')
         if inputid:
             text = self.getTextByMonkeyView(inputid)
             print "Info : get msg %s from clipboard !" % text
             if text.strip().split() == data['msg'].strip().split():
+                # 1s
                 if self.touchByMonkeyId('id/fun_btn') != 0:
                 # if self.touchByMonkeyPixel(970,1700) != 0:
                     return -1
@@ -671,7 +678,7 @@ class MonkeyDaemon(object):
         #     return ret
         # 针对新消息的提示处理
         for i in range(0,3):
-            self.device.drag((1080/2, 1550),(1080/2, 500),0.2,1)
+            self.device.drag((1080/2, 1550),(1080/2, 500),0.1,1)
 
         self.currentGroup['msgs'] = []
         dragCount = 3
@@ -681,7 +688,7 @@ class MonkeyDaemon(object):
             if is_stop_drag:
                 break
             if msgDrag !=0:
-                self.device.drag((1080/2, 500),(1080/2, 1550),0.2,1)
+                self.device.drag((1080/2, 500),(1080/2, 1550),0.1,1)
 
             hViewer = None
             _msgs = []
@@ -705,6 +712,7 @@ class MonkeyDaemon(object):
                 layoutLeft = ''
                 for t in m.children:
                     if t.id == 'id/chat_item_head_icon':
+                        # < 1s
                         layoutLeft = t.namedProperties.get('layout:mLeft').value.encode('utf8')
                         if layoutLeft == '930':
                             break
@@ -712,33 +720,36 @@ class MonkeyDaemon(object):
                         item['nickname'] = self.getTextByMonkeyView(t)
                     if t.id == 'id/chat_item_content_layout':
                         item['content'] = self.getTextByMonkeyView(t)
+                # 自己发送的消息
                 if layoutLeft == '930':
                     continue
                 else:
                     if item['nickname'].endswith(':'):
                         item['nickname'] = item['nickname'][0:-1]
 
-                #此处时间暂不考虑如 Friday 10:46 的情况
-                c = self.getDescByMonkeyView(m)
-                item['time'] = c[0:c.find(' ')]
+                # #此处时间暂不考虑如 Friday 10:46 的情况
+                # c = self.getDescByMonkeyView(m)
+                # item['time'] = c[0:c.find(' ')]
 
                 # 已存储的消息，则没有必要往前drag了。
                 if item in self.currentGroup['storedMsgs']:
                     is_stop_drag = 1
                     break
+                # 添加每条消息的drag次数
+                item['drag'] = msgDrag
                 # 未存储，则为新消息.如前一次drag已得到，则跳过。             
                 if item in msgs:
                     continue
                 msgs.append(item)
         while(msgDrag>0):
-            self.device.drag((1080/2, 1550),(1080/2, 500),0.2,1)
+            self.device.drag((1080/2, 1550),(1080/2, 500),0.1,1)
             msgDrag -= 1
 
         if msgs:
             self.currentGroup['msgs'] = msgs
             print "Info : new msgs count : %s !" % len(msgs)
             for m in self.currentGroup['msgs']:
-                print m['nickname'], m['content'], m['time']
+                print m['nickname'], m['content']
             # default: store the last 10 msgs
             self.currentGroup['storedMsgs'] += self.currentGroup['msgs']            
             print 'Info : stored msgs count ', len(self.currentGroup['storedMsgs'])
@@ -746,7 +757,7 @@ class MonkeyDaemon(object):
                 self.currentGroup['storedMsgs'] = self.currentGroup['storedMsgs'][-10:]
             self.groupList[self.currentGroup['groupId']]['storedMsgs'] = self.currentGroup['storedMsgs']                
             # for n in self.currentGroup['storedMsgs']:
-                # print n['nickname'], n['content'], n['time']
+                # print n['nickname'], n['content']
       
         return self.currentGroup['msgs']                
 
