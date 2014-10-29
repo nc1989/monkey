@@ -2,7 +2,7 @@
 
 curtime=`date +%Y-%m-%d-%s`
 logdir="./log/${curtime}"
-`mkdir ${logdir}`
+`mkdir -p ${logdir}`
 qq="3067487368"
 logfile="${logdir}/${qq}.log"
 errfile="${logdir}/${qq}.err"
@@ -41,10 +41,10 @@ main()
 	echo ">>> Info : try to start android qq !" > ${errfile}
 	start_qq_success=0
 	start_android_qq
-	while [[ start_qq_success -eq 0 ]]
+	while [ ${start_qq_success} -eq 0 ]
 	do
 		grep "${err1}" ${errfile}
-		if [[ $? -eq 0 ]];then
+		if [ $? -eq 0 ];then
 			echo "\n>>> Info : try again !"
 		    start_android_qq
 		else
