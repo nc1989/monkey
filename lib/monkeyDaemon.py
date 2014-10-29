@@ -484,7 +484,8 @@ class MonkeyDaemon(object):
         return 0
 
     def heartbeat_monkey(self):
-        print '------------ register_monkey ------------'
+        print '------------ heartbeat_monkey ------------'
+        self.touchByMonkeyPixel(430,150)
         groupList = [{'groupId': key, 'groupName': value['groupName']}
                      for key, value in self.groupList.iteritems()]
         data = {
