@@ -16,6 +16,7 @@ import simplejson as json
 
 from tools import url_get, url_post, get_local_ip
 from utils import get_encoded_character
+from msg import Msg
 
 class MonkeyDaemon(object):
     def __init__(self, qq):
@@ -641,6 +642,11 @@ class MonkeyDaemon(object):
                         # 5s ---                    
                         groupId = self.get_group_id()
                     if groupId == data['group']:
+                        if j == 1:
+                            self.groupList[groupId]['drag'] = possibleDrag - 1
+                        elif j == 2:
+                            self.groupList[groupId]['drag'] = possibleDrag + 1
+                        self.groupList[groupId]['UILocation'] = UILocation
                         return 0
         print "Error : failed to enter group %s !" % data['group']
         return -1
@@ -731,16 +737,29 @@ class MonkeyDaemon(object):
                 # #此处时间暂不考虑如 Friday 10:46 的情况
                 # c = self.getDescByMonkeyView(m)
                 # item['time'] = c[0:c.find(' ')]
-
-                # 已存储的消息，则没有必要往前drag了。
-                if item in self.currentGroup['storedMsgs']:
-                    is_stop_drag = 1
-                    break
+                
                 # 添加每条消息的drag次数
                 item['drag'] = msgDrag
-                # 未存储，则为新消息.如前一次drag已得到，则跳过。             
-                if item in msgs:
-                    continue
+
+                # 已存储的消息，则没有必要往前drag了。
+                # if item in self.currentGroup['storedMsgs']:
+                #     is_stop_drag = 1
+                #     break
+                for i in self.currentGroup['storedMsgs']:
+                    if i['content'] == item['content'] and i['nickname'] == item['nickname']:
+                        is_stop_drag = 1
+                        break
+                # 逻辑上有些问题
+                if is_stop_drag == 1:
+                    break
+                # 未存储，则为新消息.如前一次drag已得到，则跳过.
+                has_this_msg = 0
+                for j in msgs:
+                    if j['content'] == item['content'] and j['nickname'] == item['nickname']:
+                        has_this_msg = 1
+                        break
+                if has_this_msg == 1:
+                    break
                 msgs.append(item)
         while(msgDrag>0):
             self.device.drag((1080/2, 1550),(1080/2, 500),0.1,1)
@@ -754,7 +773,7 @@ class MonkeyDaemon(object):
             # default: store the last 10 msgs
             self.currentGroup['storedMsgs'] += self.currentGroup['msgs']            
             print 'Info : stored msgs count ', len(self.currentGroup['storedMsgs'])
-            if len(self.currentGroup['storedMsgs']) > 30:
+            if len(self.currentGroup['storedMsgs']) > 10:
                 self.currentGroup['storedMsgs'] = self.currentGroup['storedMsgs'][-10:]
             self.groupList[self.currentGroup['groupId']]['storedMsgs'] = self.currentGroup['storedMsgs']                
             # for n in self.currentGroup['storedMsgs']:
