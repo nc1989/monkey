@@ -11,7 +11,8 @@ errfile="${logdir}/${qq}.err"
 
 start_android_qq()
 {
-	md_pid=`pgrep -lf monkeyrunner | grep ${qq} | awk '{print $1}'`
+	# md_pid=`pgrep -lf monkeyrunner | grep ${qq} | awk '{print $1}'`
+	md_pid=`ps -ef | grep monkeyrunner | grep -v grep | awk '{print $2}'`
 
 	if [ -z ${md_pid} ];then
 	echo ">>> Info : start the android qq for ${qq} !"
@@ -35,15 +36,18 @@ monitor_adb()
 main()
 {
 	err1="Error sending touch event"
-	#err2="java.net.SocketException: Broken pipe"
-	#grep -E "${err1}|${err2}" $errfile
+	err2="java.net.SocketException: Broken pipe"
+	err3="Script terminated due to an exception"
+	err4="Error sending drag start event"
+	err5="Exception in thread"
 	echo ">>> Info : try to start android qq !" > ${logfile}
 	echo ">>> Info : try to start android qq !" > ${errfile}
 	start_qq_success=0
 	start_android_qq
 	while [ ${start_qq_success} -eq 0 ]
 	do
-		grep "${err1}" ${errfile}
+		# grep "${err1}" ${errfile}
+		grep -E "${err1}|${err2}|${err3}|${err4}|${err5}" $errfile
 		if [ $? -eq 0 ];then
 			echo "\n>>> Info : try again !"
 		    start_android_qq
