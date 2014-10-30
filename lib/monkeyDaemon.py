@@ -297,7 +297,7 @@ class MonkeyDaemon(object):
         except:
             # images
             print 'Error : failed to find text for view : %s !' % view
-            return 0
+            return ''
 
     def getDescByMonkeyView(self,view):
         # print '------------ getDescByMonkeyView %s -------------' % view
@@ -306,7 +306,7 @@ class MonkeyDaemon(object):
         except:
             # images
             print 'Error : failed to find desc for view : %s !' % view
-            return 0
+            return ''
 
     ### basic monkey operations ###
 
@@ -430,6 +430,9 @@ class MonkeyDaemon(object):
                 if self.touchByMonkeyPixel(1080/2,item['UILocation']) == 0:
                     if self.is_group() == 0:
                         groupId = self.get_group_id()
+                if groupId == -1:
+                    print "Error : failed to get the group id !"
+                    continue
                 if groupId in self.groupList.keys():
                     print "Info : this group %s %s has already exist !" % \
                         (item['groupName'],groupId)
