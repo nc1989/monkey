@@ -44,7 +44,8 @@ class MonkeyDaemon(object):
         self.get_qqName_monkey()
         if self.get_grouplist() != 0:
             self.get_pure_group_list_monkey()
-            self.write_grouplist()
+            if self.groupList != {}:
+                self.write_grouplist()
         self.register_monkey()
 
     def monkey_set_up(self):
@@ -237,25 +238,21 @@ class MonkeyDaemon(object):
     # 换另外一个group，要重新进入grouplist
     def touch_to_enter_grouplist(self):
         print '------------ touch_to_enter_grouplist -------------'
+        if self.is_info() == 0:
+            self.touch_to_leave()
+        if self.is_group() == 0:
+            self.touch_to_leave()
+            self.touch_to_leave()
         if self.is_3_columns() == 0:
             self.touch_to_enter_contacts()
             self.touchByMonkeyPixel(700,500)
             self.touchByMonkeyPixel(300,300)
             return 0
-        if self.is_info() == 0:
-            self.touch_to_leave()
-        if self.is_group() == 0:
-            self.touch_to_leave()
-        self.touch_to_leave()
-        self.touch_to_enter_contacts()
-        self.touchByMonkeyPixel(700,500)
-        self.touchByMonkeyPixel(300,300)
         # if self.is_grouplist():
         #     return 0
         # else:        
         #     print "Error : failed to touch_to_enter_grouplist !"
         #     return -1
-        return 0
 
     # @touch_wait_screen
     def touch_to_enter_msgs(self):
@@ -376,7 +373,7 @@ class MonkeyDaemon(object):
         self.groupListUpdating = 1
         if self.touch_to_enter_grouplist() != 0:
             return -1
-        for drag in range(0,15):
+        for drag in range(0,1):
             if self.is_info() == 0:
                 self.touch_to_leave()
             if self.is_group() == 0:
@@ -432,14 +429,21 @@ class MonkeyDaemon(object):
                 groupId = ''
                 if self.touchByMonkeyPixel(1080/2,item['UILocation']) == 0:
                     if self.is_group() == 0:
-                        groupId = self.get_group_id()
+                        for i in range(0,3):
+                            groupId = self.get_group_id()
+                            if groupId == '':
+                                continue
+                            else:
+                                break
                 if groupId == '':
-                    print "Error : failed to get the group id for group %s !" % item['groupName']
+                    print "Error : failed to get the group id for group %s !" % \
+                        item['groupName']
                     continue
-                if groupId in self.groupList.keys():
-                    print "Info : this group %s %s has already exist !" % \
-                        (item['groupName'],groupId)
-                    continue
+                else:
+                    if groupId in self.groupList.keys():
+                        print "Info : this group %s %s has already exist !" % \
+                            (item['groupName'],groupId)
+                        continue
                 self.groupList[groupId] = item
                 print "Info : group info: %s , %s , %s , %s, %s !" % \
                     (item['groupName'],groupId,item['drag'],item['index'],item['UILocation'])
@@ -515,7 +519,8 @@ class MonkeyDaemon(object):
                 self.heartbeat += 1
                 if self.heartbeat == 1200:
                     # self.get_pure_group_list_monkey()
-                    # self.write_grouplist()
+                    # if self.groupList != {}:
+                        # self.write_grouplist()
                     self.heartbeat_monkey()
                     self.heartbeat = 0
             else:
@@ -587,6 +592,8 @@ class MonkeyDaemon(object):
                 except:
                     print "Error : failed to parse the possibleUILocation group !"
                 if groupId == data['group']:
+                    self.currentGroup['UILocation'] = possibleUILocation
+                    self.groupList[groupId]['UILocation'] = possibleUILocation
                     return 0
                 else:
                     # 不是这个群，就退出至grouplist界面
@@ -653,6 +660,7 @@ class MonkeyDaemon(object):
                             self.groupList[groupId]['drag'] = possibleDrag - 1
                         elif j == 2:
                             self.groupList[groupId]['drag'] = possibleDrag + 1
+                        self.currentGroup['UILocation'] = UILocation
                         self.groupList[groupId]['UILocation'] = UILocation
                         return 0
         print "Error : failed to enter group %s !" % data['group']
@@ -699,9 +707,12 @@ class MonkeyDaemon(object):
         # if self.is_current_group() != 0:
         #     ret = []
         #     return ret
-        # 针对新消息的提示处理
-        for i in range(0,3):
-            self.device.drag((1080/2, 1550),(1080/2, 500),0.1,1)
+        # 针对新消息的提示处理,滑动也无效。
+        # for i in range(0,3):
+        #     self.device.drag((1080/2, 1550),(1080/2, 500),0.1,1)
+        # self.touch_to_leave()
+        # if self.touchByMonkeyPixel(1080/2,self.currentGroup['UILocation']) != 0:
+        #     return []
 
         self.currentGroup['msgs'] = []
         dragCount = 3
@@ -757,21 +768,21 @@ class MonkeyDaemon(object):
                 # 添加每条消息的drag次数
                 item['drag'] = msgDrag
 
-                # 已存储的消息，则没有必要往前drag了。
-                # if item in self.currentGroup['storedMsgs']:
-                #     is_stop_drag = 1
-                #     break
-                store_this_msg = 0
-                for i in self.currentGroup['storedMsgs']:
-                    if i['content'] == item['content'] and i['nickname'] == item['nickname']:
-                        # is_stop_drag = 1
-                        store_this_msg = 1
-                        break
-                if store_this_msg == 1:
-                    continue
-                # 逻辑上有些问题
-                # if is_stop_drag == 1:
-                    # break
+                # # 已存储的消息，则没有必要往前drag了。
+                # # if item in self.currentGroup['storedMsgs']:
+                # #     is_stop_drag = 1
+                # #     break
+                # store_this_msg = 0
+                # for i in self.currentGroup['storedMsgs']:
+                #     if i['content'] == item['content'] and i['nickname'] == item['nickname']:
+                #         # is_stop_drag = 1
+                #         store_this_msg = 1
+                #         break
+                # if store_this_msg == 1:
+                #     continue
+                # # 逻辑上有些问题
+                # # if is_stop_drag == 1:
+                #     # break
                 # 未存储，则为新消息.如前一次drag已得到，则跳过.
                 has_this_msg = 0
                 for j in msgs:
@@ -789,13 +800,13 @@ class MonkeyDaemon(object):
             self.currentGroup['msgs'] = msgs
             print "Info : new msgs count : %s !" % len(msgs)
             for m in self.currentGroup['msgs']:
-                print m['nickname'], m['content']
+                print m['nickname'], m['content'], m['drag']
             # default: store the last 10 msgs
             self.currentGroup['storedMsgs'] += self.currentGroup['msgs']            
             print 'Info : stored msgs count ', len(self.currentGroup['storedMsgs'])
             if len(self.currentGroup['storedMsgs']) > 10:
                 self.currentGroup['storedMsgs'] = self.currentGroup['storedMsgs'][-10:]
-            self.groupList[self.currentGroup['groupId']]['storedMsgs'] = self.currentGroup['storedMsgs']                
+            self.groupList[self.currentGroup['groupId']]['storedMsgs'] = self.currentGroup['storedMsgs']
             # for n in self.currentGroup['storedMsgs']:
                 # print n['nickname'], n['content']
       
