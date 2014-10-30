@@ -22,8 +22,6 @@ class MonkeyDaemon(object):
     def __init__(self, qq):
         print '-------- MonkeyDaemon __init__ ---------'
         self.qq = qq
-        self.qq['url'] = 'http://%s:%s/net_command' % (qq['ip'],qq['port'])
-        self.qq['listfile'] = './grouplist/%s.grouplist' % self.qq['qqId']
 
         # add a api to get pure group list, on-going
         self.screenUsing = 0
@@ -358,17 +356,17 @@ class MonkeyDaemon(object):
         return 0
 
     def get_grouplist(self):
-        if not os.path.isfile(self.qq['listfile']):
+        if not os.path.isfile(self.qq['grouplistfile']):
             return 1
-        f = open(self.qq['listfile'],'r')
+        f = open(self.qq['grouplistfile'],'r')
         self.groupList = json.loads(f.read())
         f.close()
         return 0
 
     def write_grouplist(self):
-        if not os.path.isfile(self.qq['listfile']):
-            os.system('touch %s' % self.qq['listfile'])
-        f = open(self.qq['listfile'],'w')
+        if not os.path.isfile(self.qq['grouplistfile']):
+            os.system('touch %s' % self.qq['grouplistfile'])
+        f = open(self.qq['grouplistfile'],'w')
         f.write(json.dumps(self.groupList).encode('utf8'))
         f.close()
         return 0
