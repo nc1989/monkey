@@ -674,6 +674,15 @@ class MonkeyDaemon(object):
                 if self.touchByMonkeyId('id/fun_btn') != 0:
                 # if self.touchByMonkeyPixel(970,1700) != 0:
                     return -1
+            else:
+                delete_code = "input keyevent KEYCODE_DEL"
+                inputid = self.get_hierarchy_view_by_id('id/input')
+                self.touchByMonkeyId('id/input')
+                while( self.getTextByMonkeyView(inputid) ):
+                    print "Info : delete the incorrect string !"
+                    for i in range(0,20):
+                        self.device.shell(delete_code)
+                    inputid = self.get_hierarchy_view_by_id('id/input')
         print "Info : send msg %s !" % data['msg']
         return 0
 
