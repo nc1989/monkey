@@ -37,10 +37,11 @@ def is_pure_alnum(text):
 
 
 def get_encoded_character(deviceid,text):
-    start_app = "adb " + "-s " + deviceid + " shell am start -an com.symbio.input.unicode/.Main"
-    click_dpad_down = "adb " + "-s " + deviceid + " shell input keyevent KEYCODE_DPAD_DOWN"
-    click_dpad_enter = "adb " + "-s " + deviceid + " shell input keyevent KEYCODE_ENTER"
-    click_dpad_space = "adb " + "-s " + deviceid + " shell input keyevent KEYCODE_SPACE"
+    avd_device = "adb -s %s" % deviceid
+    start_app = "%s shell am start -an com.symbio.input.unicode/.Main" % avd_device
+    click_dpad_down = "%s shell input keyevent KEYCODE_DPAD_DOWN" % avd_device
+    click_dpad_enter = "%s shell input keyevent KEYCODE_ENTER" % avd_device
+    click_dpad_space = "%s shell input keyevent KEYCODE_SPACE" % avd_device
     # log("%r"%text)
     run_cmd(start_app)
     time.sleep(2)
@@ -49,10 +50,10 @@ def get_encoded_character(deviceid,text):
     text_list = [x.encode('utf8') if is_pure_alnum(x) else x for x in text_list]
     log(text_list)
     for t in text_list[:-1]:
-        cmd = "adb -s %s shell input text %r"  % (deviceid, t.encode('unicode-escape'))
+        cmd = "%s shell input text %r"  % (avd_device, t.encode('unicode-escape'))
         run_cmd(cmd)
         run_cmd(click_dpad_space)
-    cmd = "adb -s %s shell input text %r"  % (deviceid, text_list[-1].encode('unicode-escape'))
+    cmd = "%s shell input text %r"  % (avd_device, text_list[-1].encode('unicode-escape'))
     run_cmd(cmd)
 
     run_cmd(click_dpad_down)
