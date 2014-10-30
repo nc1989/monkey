@@ -376,7 +376,7 @@ class MonkeyDaemon(object):
         self.groupListUpdating = 1
         if self.touch_to_enter_grouplist() != 0:
             return -1
-        for drag in range(0,10):
+        for drag in range(0,15):
             if self.is_info() == 0:
                 self.touch_to_leave()
             if self.is_group() == 0:
@@ -401,7 +401,9 @@ class MonkeyDaemon(object):
                 # first one is the search box
                 del _groupList[0]
 
+            index = 0
             for group in _groupList:
+                index += 1
                 if self.is_info() == 0:
                     self.touch_to_leave()
                 if self.is_group() == 0:
@@ -417,6 +419,7 @@ class MonkeyDaemon(object):
                     'drag':drag,
                     # 363 is qb_troop_list_view.top, 156是整个一条group的高度。
                     'UILocation': group.top + 156/2 + 363,
+                    'index':index,
                     'msgs': [],
                     'storedMsgs': []
                 }
@@ -430,22 +433,22 @@ class MonkeyDaemon(object):
                 if self.touchByMonkeyPixel(1080/2,item['UILocation']) == 0:
                     if self.is_group() == 0:
                         groupId = self.get_group_id()
-                if groupId == -1:
-                    print "Error : failed to get the group id !"
+                if groupId == '':
+                    print "Error : failed to get the group id for group %s !" % item['groupName']
                     continue
                 if groupId in self.groupList.keys():
                     print "Info : this group %s %s has already exist !" % \
                         (item['groupName'],groupId)
                     continue
                 self.groupList[groupId] = item
-                print "Info : group info: %s , %s , %s , %s !" % \
-                    (item['groupName'],groupId,item['drag'],item['UILocation'])
+                print "Info : group info: %s , %s , %s , %s, %s !" % \
+                    (item['groupName'],groupId,item['drag'],item['index'],item['UILocation'])
 
         print "Info : total group count : %s !" % len(self.groupList)
         for key in self.groupList:
-            print "Info : group info: %s , %s , %s , %s !" % \
-                (self.groupList[key]['groupName'],key, \
-                    self.groupList[key]['drag'],self.groupList[key]['UILocation'])
+            print "Info : group info: %s , %s , %s , %s, %s !" % \
+                (self.groupList[key]['groupName'],key,self.groupList[key]['drag'], \
+                    self.groupList[key]['index'],self.groupList[key]['UILocation'])
         
         self.groupListUpdating = 0
         return 0
@@ -455,10 +458,10 @@ class MonkeyDaemon(object):
         # 此时位于群组会话中，点击进入到群组信息里边
         groupId = ''
         if self.touch_to_enter_info() != 0:
-            return -1
+            return ''
         if self.is_info() != 0:
             print "Error : I am not in the info !"
-            return -1
+            return ''
         for i in range(0,3):       
             try:
                 xlist = self.get_hierarchy_view_by_id('id/common_xlistview')
