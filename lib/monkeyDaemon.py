@@ -629,10 +629,12 @@ class MonkeyDaemon(object):
                 notGroup = self.getTextByMonkeyView(group.children[0])
                 if notGroup:
                     continue
-                # groupNameView = group.children[1].children[2].children[1]
-                # groupName = self.getTextByMonkeyView(groupNameView)
-                # if groupName != self.groupList.get(data['group']).get('groupName'):
-                #     continue
+
+                # 先根据群名称来查找
+                groupNameView = group.children[1].children[2].children[1]
+                groupName = self.getTextByMonkeyView(groupNameView)
+                if groupName != self.groupList.get(data['group']).get('groupName'):
+                    continue
 
                 # 363 is qb_troop_list_view.top, 156是整个一条group的高度。                    
                 UILocation = group.top + 156/2 + 363
