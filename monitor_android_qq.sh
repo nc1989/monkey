@@ -1,9 +1,9 @@
 #!/bin/sh
 
-curtime=`date +%Y-%m-%d-%s`
-logdir="./log/${curtime}"
-`mkdir -p ${logdir}`
 qq="3067487368"
+curtime=`date +%Y-%m-%d-%s`
+logdir="./log/${qq}-${curtime}"
+`mkdir -p ${logdir}`
 logfile="${logdir}/${qq}.log"
 errfile="${logdir}/${qq}.err"
 `touch ${logfile}`
