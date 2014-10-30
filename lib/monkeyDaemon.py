@@ -323,6 +323,7 @@ class MonkeyDaemon(object):
             if self.is_3_columns() == 0:
                 self.touch_to_enter_contacts()
             # 点击联系人，QQ闪退的情况
+            sleep(2)
         print "Info : qq has been restarted correctly !"
         return 0           
         # if self.is_3_columns() == 0:
@@ -690,10 +691,10 @@ class MonkeyDaemon(object):
         self.currentGroup['msgs'] = []
         dragCount = 3
         msgs = []
-        is_stop_drag = 0
+        # is_stop_drag = 0
         for msgDrag in range(0, dragCount):
-            if is_stop_drag:
-                break
+            # if is_stop_drag:
+                # break
             if msgDrag !=0:
                 self.device.drag((1080/2, 500),(1080/2, 1550),0.1,1)
 
@@ -745,13 +746,17 @@ class MonkeyDaemon(object):
                 # if item in self.currentGroup['storedMsgs']:
                 #     is_stop_drag = 1
                 #     break
+                store_this_msg = 0
                 for i in self.currentGroup['storedMsgs']:
                     if i['content'] == item['content'] and i['nickname'] == item['nickname']:
-                        is_stop_drag = 1
+                        # is_stop_drag = 1
+                        store_this_msg = 1
                         break
+                if store_this_msg == 1:
+                    continue
                 # 逻辑上有些问题
-                if is_stop_drag == 1:
-                    break
+                # if is_stop_drag == 1:
+                    # break
                 # 未存储，则为新消息.如前一次drag已得到，则跳过.
                 has_this_msg = 0
                 for j in msgs:
@@ -759,7 +764,7 @@ class MonkeyDaemon(object):
                         has_this_msg = 1
                         break
                 if has_this_msg == 1:
-                    break
+                    continue
                 msgs.append(item)
         while(msgDrag>0):
             self.device.drag((1080/2, 1550),(1080/2, 500),0.1,1)
