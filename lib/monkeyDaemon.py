@@ -145,6 +145,7 @@ class MonkeyDaemon(object):
             return -1
 
     def is_current_group(self):
+        # 暂时没有用到，以后单口的时候可能会用到。
         # print '------------ is_current_group ------------'
         print "Info : current group : %s !" % self.currentGroup['groupId']
         groupId = ''
@@ -160,6 +161,7 @@ class MonkeyDaemon(object):
             return 1
 
     def is_3_columns(self):
+        # 按照title来判断呢？
         # print '------------ is_3_columns ------------'
         recent_chat_list = None
         try:
@@ -242,17 +244,17 @@ class MonkeyDaemon(object):
             self.touch_to_leave()
         if self.is_group() == 0:
             self.touch_to_leave()
+        if self.is_grouplist() == 0:
             self.touch_to_leave()
         if self.is_3_columns() == 0:
             self.touch_to_enter_contacts()
             self.touchByMonkeyPixel(700,500)
             self.touchByMonkeyPixel(300,300)
+        if self.is_grouplist() == 0:
             return 0
-        # if self.is_grouplist():
-        #     return 0
-        # else:        
-        #     print "Error : failed to touch_to_enter_grouplist !"
-        #     return -1
+        else:
+            print "Error : failed to touch_to_enter_grouplist !"
+            return -1
 
     # @touch_wait_screen
     def touch_to_enter_msgs(self):
@@ -543,8 +545,8 @@ class MonkeyDaemon(object):
             self.currentGroup['groupName'] = self.groupList[data['group']]['groupName']
         
         # 这两个大概13～15s ---
-        if self.is_current_group() == 0:
-            return 0
+        # if self.is_current_group() == 0:
+        #     return 0
         if self.touch_to_enter_grouplist() != 0:
             return -1
 
@@ -593,7 +595,6 @@ class MonkeyDaemon(object):
                     print "Error : failed to parse the possibleUILocation group !"
                 if groupId == data['group']:
                     self.currentGroup['UILocation'] = possibleUILocation
-                    self.groupList[groupId]['UILocation'] = possibleUILocation
                     return 0
                 else:
                     # 不是这个群，就退出至grouplist界面
@@ -631,7 +632,7 @@ class MonkeyDaemon(object):
                     self.touch_to_leave()
                 # 1s
                 if self.is_grouplist() != 0:
-                    return -1
+                    break
                 # 我创建的群(16) 这样的一行
                 notGroup = self.getTextByMonkeyView(group.children[0])
                 if notGroup:
@@ -653,13 +654,16 @@ class MonkeyDaemon(object):
                 # 0.5s
                 if self.touchByMonkeyPixel(1080/2,UILocation) == 0:
                     if self.is_group() == 0:
-                        # 5s ---                    
+                        # 5s ---
+                        # 可先判断groupName，相同再进去获取id；否则leave.
+                        # 但是会出错。
                         groupId = self.get_group_id()
                     if groupId == data['group']:
                         if j == 1:
                             self.groupList[groupId]['drag'] = possibleDrag - 1
                         elif j == 2:
                             self.groupList[groupId]['drag'] = possibleDrag + 1
+                        # 暂未更新drag？
                         self.currentGroup['UILocation'] = UILocation
                         self.groupList[groupId]['UILocation'] = UILocation
                         return 0
