@@ -1,6 +1,6 @@
 #!/bin/sh
 
-qq="3067487368"
+qq="2902424837"
 curtime=`date +%Y-%m-%d-%H:%M:%S`
 logdir="./log/${qq}-${curtime}"
 `mkdir -p ${logdir}`
@@ -31,6 +31,7 @@ monitor_adb()
 {
 	adb_info=`adb devices`
 	# echo ${adb_info}
+	# os.system('emulator -avd %s ' % emulator[options.qq])
 }
 
 main()
