@@ -139,10 +139,10 @@ class MonkeyDaemon(object):
         except:
             print "Error : failed to parse view id/qb_troop_list_view !"
         if qb_troop_list_view:
-            # print "Info : already in the grouplist !"
+            print "Info : I am already in the grouplist !"
             return 0
         else:
-            # print "Info : I am not in the grouplist !"
+            print "Info : I am not in the grouplist !"
             return -1
 
     def is_current_group(self):
@@ -288,7 +288,7 @@ class MonkeyDaemon(object):
                     if self.is_grouplist() == 0:
                         return self.touchByMonkeyPixel(300,300)
         else:
-            print "Error : failed to touch_to_enter_grouplist !"
+            # print "Error : failed to touch_to_enter_grouplist !"
             return -1
 
     # @touch_wait_screen
@@ -489,7 +489,7 @@ class MonkeyDaemon(object):
         self.groupListUpdating = 0
         return 0
 
-    # 获取groupId,结束后仍退出至group
+    # 获取groupId,结束后仍退出至group 界面
     def get_group_id(self):
         # 此时位于群组会话中，点击进入到群组信息里边
         groupId = ''
@@ -510,6 +510,88 @@ class MonkeyDaemon(object):
         print "Info : get this group id : %s !" % groupId
         self.touch_to_leave()
         return groupId
+
+    def check_group_by_possible_location(self,target_group):
+        target_group_name = self.groupList[target_group]['groupName'].encode('utf8')
+        possibleDrag = self.groupList[target_group]['drag']
+        possibleUILocation = self.groupList[target_group]['UILocation']
+        print "Info : possibleDrag %s , possibleUILocation %s to enter group %s !" % \
+                (possibleDrag, possibleUILocation, target_group)
+        if possibleDrag > 0:
+            for i in range(0,possibleDrag):
+                self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
+
+        if self.touchByMonkeyPixel(1080/2,possibleUILocation) == 0:
+            if self.is_group() == 0:
+                # 可先判断groupName，相同再进去获取id；否则leave.
+                title_view = self.get_hierarchy_view_by_id('id/title')
+                title = self.getTextByMonkeyView(title_view)
+                print "actual_group_name : %s" % title
+                print "target_group_name : %s" % target_group_name
+                # 以后可以把找到的group的位置更新下
+                if title == target_group_name:
+                    if self.get_group_id() == target_group:
+                        self.currentGroup['UILocation'] = possibleUILocation
+                        return 0
+                else:
+                    print "Info : failed to enter group %s via possibleDrag %s , possibleUILocation %s !" % \
+                            (target_group, possibleDrag, possibleUILocation)            
+                    # 不是这个群，就退出至grouplist界面
+                    if self.is_group() == 0:
+                        self.touch_to_leave()
+                    # 查找一下当前界面的groups
+                    if self.find_target_group_from_list(target_group) == 0:
+                        return 0
+                    return 3
+
+    def find_target_group_from_list(self,target_group):
+        print '------------ find_target_group_from_list ------------'
+        if self.is_grouplist() != 0:
+            return -1
+        target_group_name = self.groupList[target_group]['groupName'].encode('utf8')
+        # < 1s
+        qb_troop_list_view = self.get_hierarchy_view_by_id('id/qb_troop_list_view')
+        if qb_troop_list_view == None:
+            return -1
+        _groupList = []
+        _groupList = qb_troop_list_view.children
+        if _groupList == []:
+            print "Error : failed to parse view qb_troop_list_view !"
+            return -1
+
+        # first one is the search box
+        # 通过高度来判断是否是group item（78）。
+        # 而enter_group时通过名字来查找，不需要此步
+        # del _groupList[0]
+        for group in _groupList:
+            # 我创建的群(16) 这样的一行
+            notGroup = self.getTextByMonkeyView(group.children[0])
+            if notGroup:
+                continue
+
+            # 先根据群名称来查找
+            groupNameView = group.children[1].children[2].children[1]
+            groupName = self.getTextByMonkeyView(groupNameView)
+            print "this_group_name : ", groupName
+            print "target_group_name : ", target_group_name
+            if groupName != target_group_name:
+                continue
+
+            # 363 is qb_troop_list_view.top, 156是整个一条group的高度。                    
+            UILocation = group.top + 156/2 + 363
+            # groupName对了，然后看groupId。暂时不要去解析groupName，耗时
+            # 第一个和最后一个群组的uilocation需要额外处理，以防点到屏幕外边去了。
+            if UILocation < 370 or UILocation > 1760:
+                print "Info : skip this group in case we touch screen incorrectly !"
+                continue
+            # 0.5s
+            if self.touchByMonkeyPixel(1080/2,UILocation) == 0:
+                if self.is_group() == 0:
+                    if self.get_group_id() == target_group:
+                        self.currentGroup['UILocation'] = UILocation
+                        self.groupList[target_group]['UILocation'] = UILocation
+                        return 0
+        return -1
 
     def register_monkey(self):
         print '------------ register_monkey ------------'
@@ -563,159 +645,46 @@ class MonkeyDaemon(object):
 
     # 此处，不考虑UILocation
     def enter_group(self,data):
-        print '\n------------ enter_group ------------'
+        target_group = data['group']
+        target_group_name = self.groupList[target_group]['groupName'].encode('utf8')
+        print '\n------------ enter_group : %s %s' % (target_group_name,target_group)
+
         if self.groupListUpdating == 1:
             print "Info : groupList is updating now ! Please wait about 2 minutes !"
             return 1
-        if data['group'] not in self.groupList:
-            print "Error : failed to find in the grouplist %s !" % data['group']
-            return -1
-        if self.currentGroup['groupId'] != data['group']:
-            self.currentGroup['groupId'] = data['group']
-            self.currentGroup['groupName'] = self.groupList[data['group']]['groupName']
+        if target_group not in self.groupList:
+            print "Error : failed to find in the grouplist %s !" % target_group
+            return 2
         
-        # 这两个大概13～15s ---
-        # if self.is_current_group() == 0:
-        #     return 0
         if self.touch_to_enter_grouplist() != 0:
-            return -1
+            print "Error : failed to touch_to_enter_grouplist !"
+            return 3
 
-        groupId = ''
         # 通过possibleDrag来缩小查找范围。然后从该页的自己、前、后 三个界面查找。
         # 下一步，可以通过possibleIndex，在自己界面进一步缩小查找范围。
         #       在前界面，从后往前查找；在后界面，从前往后查找。
-        possibleDrag = self.groupList[ data['group'] ]['drag']
-        possibleUILocation = self.groupList[ data['group'] ]['UILocation']
-        print "Info : possibleDrag %s , possibleUILocation %s to enter group %s !" % \
-                (possibleDrag, possibleUILocation, data['group'])
-        if possibleDrag > 0:
-            for i in range(0,possibleDrag):
-                self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
-                # sleep(1)
 
-        # 现在，前，后的顺序查找三个界面
-        for j in range(0,3):
-            # 大概1s
-            if self.is_grouplist() != 0:
-                if self.is_info() == 0:
-                    self.touch_to_leave()
-                if self.is_group() == 0:
-                    self.touch_to_leave()
-            if possibleDrag == 0:
-                if j != 0:
-                    # 向下drag一次
-                    self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
-            else:
-                if j == 1:
-                    # 向上drag一次
-                    self.device.drag((1080/2, 400),(1080/2, 1700),0.2,1)
-                if j == 2:
-                    # 向下drag一次
-                    self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
-                    self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
-
-            # 每次j==0的时候，首先看下possibleUILocation对应的group
-            if j == 0:
-                try:
-                    if self.touchByMonkeyPixel(1080/2,possibleUILocation) == 0:
-                        if self.is_group() == 0:
-                            # 5s ---
-                            # 可先判断groupName，相同再进去获取id；否则leave.
-                            title_view = None
-                            title = ''
-                            title_view = self.get_hierarchy_view_by_id('id/title')
-                            title = self.getTextByMonkeyView(title_view)
-                            if title == self.currentGroup['groupName'].encode('utf8'):
-                                groupId = self.get_group_id()
-                except:
-                    print "Error : failed to parse the possibleUILocation group !"
-                if groupId == data['group']:
-                    self.currentGroup['UILocation'] = possibleUILocation
-                    return 0
-                else:
-                    # 不是这个群，就退出至grouplist界面
-                    print "Info : failed to enter group %s via possibleDrag %s , possibleUILocation %s !" % \
-                            (data['group'], possibleDrag, possibleUILocation)                    
-                    if self.is_info() == 0:
-                        self.touch_to_leave()
-                    if self.is_group() == 0:
-                        self.touch_to_leave()   
-
-            # < 1s
-            qb_troop_list_view = self.get_hierarchy_view_by_id('id/qb_troop_list_view')
-            if qb_troop_list_view == None:
-                continue
-            _groupList = []
-            # 很快
-            _groupList = qb_troop_list_view.children
-            if _groupList == []:
-                print "Error : failed to parse view qb_troop_list_view !"
-                continue
-
-            if possibleDrag == 0:
-                # first one is the search box
-                del _groupList[0]
-            elif possibleDrag == 1:
-                if j == 1:
-                    del _groupList[0]
-
-            for group in _groupList:
-                # 2s ---
-                if self.is_info() == 0:
-                    self.touch_to_leave()
-                # 1s
-                if self.is_group() == 0:
-                    self.touch_to_leave()
-                # 1s
-                if self.is_grouplist() != 0:
-                    break
-                # 我创建的群(16) 这样的一行
-                notGroup = self.getTextByMonkeyView(group.children[0])
-                if notGroup:
-                    continue
-
-                # 先根据群名称来查找
-                groupNameView = group.children[1].children[2].children[1]
-                groupName = self.getTextByMonkeyView(groupNameView)
-                if groupName != self.currentGroup['groupName'].encode('utf8'):
-                    continue
-
-                # 363 is qb_troop_list_view.top, 156是整个一条group的高度。                    
-                UILocation = group.top + 156/2 + 363
-                # groupName对了，然后看groupId。暂时不要去解析groupName，耗时
-                # 第一个和最后一个群组的uilocation需要额外处理，以防点到屏幕外边去了。
-                if UILocation < 370 or UILocation > 1760:
-                    print "Info : skip this group in case we touch screen incorrectly !"
-                    continue
-                # 0.5s
-                if self.touchByMonkeyPixel(1080/2,UILocation) == 0:
-                    if self.is_group() == 0:
-                        # 5s ---
-                        # 可先判断groupName，相同再进去获取id；否则leave.
-                        title_view = None
-                        title = ''
-                        title_view = self.get_hierarchy_view_by_id('id/title')
-                        title = self.getTextByMonkeyView(title_view)
-                        if title == self.currentGroup['groupName'].encode('utf8'):
-                            groupId = self.get_group_id()
-                    if groupId == data['group']:
-                        if j == 1:
-                            self.groupList[groupId]['drag'] = possibleDrag - 1
-                        elif j == 2:
-                            self.groupList[groupId]['drag'] = possibleDrag + 1
-                        # 暂未更新drag？
-                        self.currentGroup['UILocation'] = UILocation
-                        self.groupList[groupId]['UILocation'] = UILocation
-                        return 0
-        print "Error : failed to enter group %s !" % data['group']
+        # 0
+        if self.check_group_by_possible_location(target_group) == 0:
+            return 0
+        # -1
+        # 向上drag一次，possibledrag非0时候
+        self.device.drag((1080/2, 400),(1080/2, 1700),0.2,1)
+        if self.find_target_group_from_list(target_group) == 0:
+            return 0
+        # 2
+        # 向下drag一次
+        self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
+        self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
+        if self.find_target_group_from_list(target_group) == 0 :
+            return 0
+        print "Error : failed to enter group %s !" % target_group
         return -1
 
     def send_msg(self,data):
-        print '\n------------ send_msg ------------'
         if not data.get('msg'):
-            return -1        
-        # if self.is_current_group() != 0:
-        #     return -1
+            return 1
+        print '\n------------ send_msg %s' % data['msg']
 
         get_encoded_character(self.qq['deviceid'], data['msg'].decode('utf8'))
         # self.restart_qq_monkey()
@@ -731,9 +700,9 @@ class MonkeyDaemon(object):
             print "Info : get msg %s from clipboard !" % text
             if text.strip().split() == data['msg'].strip().split():
                 # 1s
-                if self.touchByMonkeyId('id/fun_btn') != 0:
+                if self.touchByMonkeyId('id/fun_btn') == 0:
                 # if self.touchByMonkeyPixel(970,1700) != 0:
-                    return -1
+                    return 0
             else:
                 delete_code = "input keyevent KEYCODE_DEL"
                 inputid = self.get_hierarchy_view_by_id('id/input')
@@ -743,18 +712,10 @@ class MonkeyDaemon(object):
                     for i in range(0,20):
                         self.device.shell(delete_code)
                     inputid = self.get_hierarchy_view_by_id('id/input')
-        print "Info : send msg %s !" % data['msg']
         return 0
 
     def get_msgs(self,data):
         print '\n------------ get_msgs ------------'
-        # if self.is_current_group() != 0:
-        #     ret = []
-        #     return ret
-
-        # self.touch_to_leave()
-        # if self.touchByMonkeyPixel(1080/2,self.currentGroup['UILocation']) != 0:
-        #     return []
 
         self.currentGroup['msgs'] = []
         dragCount = 3
