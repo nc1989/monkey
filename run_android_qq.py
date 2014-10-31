@@ -76,6 +76,7 @@ if __name__ == '__main__':
 
     global md
     md = MonkeyDaemon(qqlist[options.qq])
+    print "Info : get the qqName : ",md.qq.get('qqName')
     if md.qq.get('qqName'):
         print '------------Now, Android QQ daemon is running for %s on url %s ----------' \
             % (md.qq['qqId'], md.qq['url'])
