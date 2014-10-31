@@ -1,7 +1,7 @@
 #!/bin/sh
 
 qq="2902424837"
-curtime=`date +%Y-%m-%d-%H:%M:%S`
+curtime=`date +%Y-%m-%d-%H:%M`
 logdir="./log/${qq}-${curtime}"
 `mkdir -p ${logdir}`
 logfile="${logdir}/${qq}.log"
@@ -49,8 +49,9 @@ main()
 	while [ ${start_qq_success} -eq 0 ]
 	do
 		# grep "${err1}" ${errfile}
-		grep -E "${err1}|${err2}|${err6}" ${errfile}
-		if [ $? -eq 0 ];then
+		rc1=`grep -E "${err1}|${err2}|${err6}" ${errfile}`
+		rc2=`grep -E "${err1}|${err2}|${err6}" ${logfile}`
+		if [ rc1 -eq 0 -a rc2 -eq 0 ];then
 			echo "\n>>> Info : try again !"
 		    start_android_qq
 		else
