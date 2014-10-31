@@ -9,8 +9,8 @@ from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 from com.android.monkeyrunner.easy import EasyMonkeyDevice, By
 from com.android.chimpchat.hierarchyviewer import HierarchyViewer
 
-jython_lib = '/usr/local/Cellar/jython/2.5.3/libexec/Lib'
-# jython_lib = '/home/chris/jython2.5.3/Lib'
+# jython_lib = '/usr/local/Cellar/jython/2.5.3/libexec/Lib'
+jython_lib = '/home/chris/jython2.5.3/Lib'
 sys.path.append("%s/site-packages/simplejson-3.6.3-py2.5.egg" % jython_lib)
 import simplejson as json
 
@@ -247,9 +247,10 @@ class MonkeyDaemon(object):
         if self.is_grouplist() == 0:
             self.touch_to_leave()
         if self.is_3_columns() == 0:
-            self.touch_to_enter_contacts()
-            self.touchByMonkeyPixel(700,500)
-            self.touchByMonkeyPixel(300,300)
+            if self.touch_to_enter_contacts() == 0:
+                if self.touchByMonkeyPixel(700,500) ==0 :
+                    if self.is_grouplist() == 0:
+                        self.touchByMonkeyPixel(300,300)
         if self.is_grouplist() == 0:
             return 0
         else:
@@ -375,7 +376,7 @@ class MonkeyDaemon(object):
         self.groupListUpdating = 1
         if self.touch_to_enter_grouplist() != 0:
             return -1
-        for drag in range(0,1):
+        for drag in range(0,15):
             if self.is_info() == 0:
                 self.touch_to_leave()
             if self.is_group() == 0:
