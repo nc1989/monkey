@@ -26,18 +26,15 @@ def start_listen(port):
 
 @app.get('/daemon_info')
 def monkey_info():
-    print "------------ monkey_info for qq %s %s ------------" % \
-         (md.qq['qqName'],md.qq['qqId'])
+    qqId = md.qq['qqId']
+    print "------------ monkey_info for qq %s ------------" % qqId
     data = {
-        'qq': md.qq,
+        'qq': qqId,
         'groupList': md.groupList,
         'currentGroup': md.currentGroup,
     }
     return json.dumps({"status": 0, "data": data})
 
-# enter_group
-# get_msgs
-# send_msg
 @app.post('/net_command')
 def net_command():
     ret = ''
@@ -58,11 +55,6 @@ def net_command():
         else:
             return json.dumps({'status': 0, 'data': ret})
 
-
-# monkeyrunner run_android_qq.py --qq 3040493963
-# monkeyrunner run_android_qq.py --qq 3067487368
-# monkeyrunner run_android_qq.py --qq 2902424837
-# monkeyrunner run_android_qq.py --qq 2195356784
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("--qq", dest="qq")
@@ -79,17 +71,19 @@ if __name__ == '__main__':
     qqlist[options.qq]['url'] = "http://%s:%s/net_command" % \
             (get_local_ip(), qqlist[options.qq]['port'])
     qqlist[options.qq]['robot_url'] = 'http://0.0.0.0:8017/net_command'
-    # qqlist[options.qq]['robot_url'] = 'http://192.168.217.191:8001/net_command'
+    # qqlist[options.qq]['robot_url'] = 'http://10.128.121.226:8001/net_command'
     qqlist[options.qq]['grouplistfile'] = './grouplist/%s.grouplist' % options.qq   
 
-    # os.system('emulator -avd %s ' % emulator[options.qq])
     global md
     md = MonkeyDaemon(qqlist[options.qq])
-    print '------------Now, Android QQ daemon is running for %s on url %s ----------' \
+    if md.qq.get('qqName'):
+        print '------------Now, Android QQ daemon is running for %s on url %s ----------' \
             % (md.qq['qqId'], md.qq['url'])
+        th = Thread(target=start_listen, args=[ md.qq['port'] ])
+        th.setDaemon(True)
+        th.start()
+        md.monkey_task_loop()
+    else:
+        print "Error : failed to start Android QQ daemon for %s !" % options.qq
+        sys.exit(1)
 
-    th = Thread(target=start_listen, args=[ md.qq['port'] ])
-    th.setDaemon(True)
-    th.start()
-
-    md.monkey_task_loop()
