@@ -751,9 +751,7 @@ class MonkeyDaemon(object):
         # if self.is_current_group() != 0:
         #     ret = []
         #     return ret
-        # 针对新消息的提示处理,滑动也无效。
-        # for i in range(0,3):
-        #     self.device.drag((1080/2, 1550),(1080/2, 500),0.1,1)
+
         # self.touch_to_leave()
         # if self.touchByMonkeyPixel(1080/2,self.currentGroup['UILocation']) != 0:
         #     return []
@@ -836,9 +834,9 @@ class MonkeyDaemon(object):
                 if has_this_msg == 1:
                     continue
                 msgs.append(item)
-        while(msgDrag>0):
+        # 针对新消息的提示处理。                
+        for i in range(0,6):
             self.device.drag((1080/2, 1550),(1080/2, 500),0.1,1)
-            msgDrag -= 1
 
         if msgs:
             self.currentGroup['msgs'] = msgs
