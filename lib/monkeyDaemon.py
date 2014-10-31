@@ -587,10 +587,16 @@ class MonkeyDaemon(object):
             # 每次j==0的时候，首先看下possibleUILocation对应的group
             if j == 0:
                 try:
-                    # 6s
                     if self.touchByMonkeyPixel(1080/2,possibleUILocation) == 0:
                         if self.is_group() == 0:
-                            groupId = self.get_group_id()
+                            # 5s ---
+                            # 可先判断groupName，相同再进去获取id；否则leave.
+                            title_view = None
+                            title = ''
+                            title_view = self.get_hierarchy_view_by_id('id/title')
+                            title = self.getTextByMonkeyView(title_view)
+                            if title == self.currentGroup['groupName'].encode('utf8'):
+                                groupId = self.get_group_id()
                 except:
                     print "Error : failed to parse the possibleUILocation group !"
                 if groupId == data['group']:
@@ -656,8 +662,12 @@ class MonkeyDaemon(object):
                     if self.is_group() == 0:
                         # 5s ---
                         # 可先判断groupName，相同再进去获取id；否则leave.
-                        # 但是会出错。
-                        groupId = self.get_group_id()
+                        title_view = None
+                        title = ''
+                        title_view = self.get_hierarchy_view_by_id('id/title')
+                        title = self.getTextByMonkeyView(title_view)
+                        if title == self.currentGroup['groupName'].encode('utf8'):
+                            groupId = self.get_group_id()
                     if groupId == data['group']:
                         if j == 1:
                             self.groupList[groupId]['drag'] = possibleDrag - 1
