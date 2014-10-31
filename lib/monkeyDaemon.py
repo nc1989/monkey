@@ -9,8 +9,8 @@ from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 from com.android.monkeyrunner.easy import EasyMonkeyDevice, By
 from com.android.chimpchat.hierarchyviewer import HierarchyViewer
 
-# jython_lib = '/usr/local/Cellar/jython/2.5.3/libexec/Lib'
-jython_lib = '/home/chris/jython2.5.3/Lib'
+jython_lib = '/usr/local/Cellar/jython/2.5.3/libexec/Lib'
+# jython_lib = '/home/chris/jython2.5.3/Lib'
 sys.path.append("%s/site-packages/simplejson-3.6.3-py2.5.egg" % jython_lib)
 import simplejson as json
 
@@ -41,7 +41,8 @@ class MonkeyDaemon(object):
         self.monkey_set_up()
         if self.restart_qq_monkey() != 0:
             sys.exit(-1)
-        self.get_qqName_monkey()
+        if self.get_qqName_monkey() != 0:
+            sys.exit(-1)
         if self.get_grouplist() != 0:
             self.get_pure_group_list_monkey()
             if self.groupList != {}:
@@ -180,6 +181,24 @@ class MonkeyDaemon(object):
 
     ### basic monkey operations ###
 
+    def get_current_view(self):
+        try:
+            hViewer = self.device.getHierarchyViewer()
+            if hViewer.findViewById('id/listView1'):
+                return 'is_group'
+            elif hViewer.findViewById('id/qb_troop_list_view'):
+                return 'is_grouplist'
+            elif hViewer.findViewById('id/elv_buddies'):
+                return 'is_contacts'
+            elif hViewer.findViewById('id/common_xlistview'):
+                return 'is_info'
+            elif hViewer.findViewById('id/recent_chat_list'):
+                return 'is_chatlist'
+            else:
+                return ''
+        except:
+            return ''
+
     def get_hierarchy_view_by_id(self,id):
         try:
             hViewer = self.device.getHierarchyViewer()
@@ -227,6 +246,26 @@ class MonkeyDaemon(object):
             print "Error : failed to touch_to_leave !"
             return -1
 
+    def touch_to_enter_main(self):
+        # 先回到chatlist或contacts        
+        print '------------ touch_to_enter_main -------------'
+        view = self.get_current_view()
+        if view == 'is_chatlist' or view == 'is_contacts':
+            print "Info : I am in the main view %s !" % view
+        elif view == "is_grouplist":
+            self.touch_to_leave()
+        elif view == 'is_group':
+            self.touch_to_leave()
+            self.touch_to_leave()
+        elif view == 'is_info':
+            self.touch_to_leave()
+            self.touch_to_leave()
+            self.touch_to_leave()
+        else:
+            print "Error : failed to touch_to_enter_main !"
+            return -1
+        return 0
+
     # @touch_wait_screen
     def touch_to_enter_info(self):
         # print '------------ touch_to_enter_info -------------'
@@ -239,20 +278,15 @@ class MonkeyDaemon(object):
     # @touch_wait_screen
     # 换另外一个group，要重新进入grouplist
     def touch_to_enter_grouplist(self):
-        print '------------ touch_to_enter_grouplist -------------'
-        if self.is_info() == 0:
-            self.touch_to_leave()
-        if self.is_group() == 0:
-            self.touch_to_leave()
-        if self.is_grouplist() == 0:
-            self.touch_to_leave()
-        if self.is_3_columns() == 0:
+        print '------------ touch_to_enter_grouplist -------------'     
+        if self.touch_to_enter_main() != 0:
+            return -1
+        view = self.get_current_view()
+        if view == 'is_contacts' or view == 'is_chatlist':
             if self.touch_to_enter_contacts() == 0:
                 if self.touchByMonkeyPixel(700,500) ==0 :
                     if self.is_grouplist() == 0:
-                        self.touchByMonkeyPixel(300,300)
-        if self.is_grouplist() == 0:
-            return 0
+                        return self.touchByMonkeyPixel(300,300)
         else:
             print "Error : failed to touch_to_enter_grouplist !"
             return -1
@@ -336,24 +370,19 @@ class MonkeyDaemon(object):
     # @check_qq_status
     def get_qqName_monkey(self):
         print '------------ get_qqName_monkey ------------'
-        if self.is_3_columns() == 0:
+        if self.touch_to_enter_main() != 0:
+            return -1
+        view = self.get_current_view()
+        if view == 'is_chatlist' or view == 'is_contacts':
             self.touch_to_enter_msgs()
+            self.device.drag((300, 150),(1000, 150),0.2,1)
+            nickname = self.get_hierarchy_view_by_id('id/nickname')
+            self.qq['qqName'] = self.getTextByMonkeyView(nickname)
+            self.device.drag((1000, 150),(300, 150),0.2,1)
+            return 0
         else:
-            if self.is_info() == 0:
-                self.touch_to_leave()
-            if self.is_group() == 0:
-                self.touch_to_leave()
-            if self.is_grouplist() == 0:
-                self.touch_to_leave()
-        # if self.touchByMonkeyPixel(90,150) != 0:
-        #     return -1
-        self.device.drag((300, 150),(1000, 150),0.2,1)
-        nickname = self.get_hierarchy_view_by_id('id/nickname')
-        self.qq['qqName'] = self.getTextByMonkeyView(nickname)
-        # if self.touchByMonkeyPixel(1050,700) != 0:
-        #     return -1
-        self.device.drag((1000, 150),(300, 150),0.2,1)
-        return 0
+            print "Error : failed to get QQ name !"
+            return -1
 
     def get_grouplist(self):
         if not os.path.isfile(self.qq['grouplistfile']):
