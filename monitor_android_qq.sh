@@ -1,7 +1,7 @@
 #!/bin/sh
 
 qq="3067487368"
-curtime=`date +%Y-%m-%d-%h:%M:%S`
+curtime=`date +%Y-%m-%d-%H:%M:%S`
 logdir="./log/${qq}-${curtime}"
 `mkdir -p ${logdir}`
 logfile="${logdir}/${qq}.log"
