@@ -9,8 +9,8 @@ from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 from com.android.monkeyrunner.easy import EasyMonkeyDevice, By
 from com.android.chimpchat.hierarchyviewer import HierarchyViewer
 
-jython_lib = '/usr/local/Cellar/jython/2.5.3/libexec/Lib'
-# jython_lib = '/home/chris/jython2.5.3/Lib'
+# jython_lib = '/usr/local/Cellar/jython/2.5.3/libexec/Lib'
+jython_lib = '/home/chris/jython2.5.3/Lib'
 sys.path.append("%s/site-packages/simplejson-3.6.3-py2.5.egg" % jython_lib)
 import simplejson as json
 
@@ -23,34 +23,36 @@ class MonkeyDaemon(object):
         print '-------- MonkeyDaemon __init__ ---------'
         self.qq = qq
 
-        self.emulator = {
-            'width':1080,
-            'height':1920,
-            'qqStart':[150,1650],
-            'qqName':[75,150],
-            'msgs':[200,1700],
-            'contacts':[500,1700],
-            'groups':[700,500],
-            'myGroups':[300,300],
-            'info':[1000,150],
-            'heartbeat':[430,150],
-            'paste':[270,1590],
-            'leave':[150,150],
-            'self_msg':930,
-        }
-
         # self.emulator = {
-        #     'width':480,
-        #     'height':800,
-        #     'qqStart':[50,750],
-        #     'qqName':[40,75],
-        #     'msgs':[80,750],
-        #     'contacts':[240,750],
-        #     'groups':[300,230],
-        #     'myGroups':[100,150],
-        #     'info':[450,75],
-        #     'heartbeat':[200,75],
+        #     'width':1080,
+        #     'height':1920,
+        #     'qqStart':[150,1650],
+        #     'qqName':[75,150],
+        #     'msgs':[200,1700],
+        #     'contacts':[500,1700],
+        #     'groups':[700,500],
+        #     'myGroups':[300,300],
+        #     'info':[1000,150],
+        #     'heartbeat':[430,150],
+        #     'paste':[270,1590],
+        #     'leave':[150,150],
+        #     'self_msg':'930',
         # }
+
+        self.emulator = {
+            'width':480,
+            'height':800,
+            'qqStart':[50,750],
+            'qqName':[40,75],
+            'msgs':[80,750],
+            'contacts':[240,750],
+            'groups':[300,230],
+            'myGroups':[100,150],
+            'info':[450,75],
+            'heartbeat':[200,75],
+            'paste':[130,710],
+            'self_msg':'404',
+        }
 
         # add a api to get pure group list, on-going
         self.screenUsing = 0
@@ -253,22 +255,27 @@ class MonkeyDaemon(object):
 
     def drag_to_page_down(self):
         try:
-            self.device.shell("input keyevent KEYCODE_PAGE_DOWN")
+            # self.device.shell("input keyevent KEYCODE_PAGE_DOWN")
+            # self.device.press('KEYCODE_PAGE_DOWN','DOWN_AND_UP','')
+            self.device.drag((480/2, 710),(480/2, 130),0.2,1)
         except:
             print "Error : failed to drag_to_page_down !"
             return -1
 
     def drag_to_page_up(self):
         try:
-            self.device.shell("input keyevent KEYCODE_PAGE_UP")
+            # self.device.shell("input keyevent KEYCODE_PAGE_UP")
+            # self.device.press('KEYCODE_PAGE_UP','DOWN_AND_UP','')
+            self.device.drag((480/2, 130),(480/2, 710),0.2,1)
         except:
             print "Error : failed to drag_to_page_up !"
             return -1
 
     def touch_to_enter_home_screen(self):
         try:
-            return self.touchByMonkeyPixel(1080/2,1850)
+            # return self.touchByMonkeyPixel(1080/2,1850)
             # self.device.shell("input keyevent KEYCODE_HOME")
+            self.device.press('KEYCODE_HOME','DOWN_AND_UP','')
         except:
             print "Error : failed to touch_to_enter_home_screen !"
             return -1            
@@ -277,8 +284,10 @@ class MonkeyDaemon(object):
     def touch_to_leave(self):
         # print '------------ touch_to_leave -------------'
         try:
-            return self.touchByMonkeyPixel(150,150)
+            # return self.touchByMonkeyPixel(150,150)
             # self.device.shell("input keyevent KEYCODE_BACK")
+            self.device.press('KEYCODE_BACK','DOWN_AND_UP','')
+            sleep(1)
         except:
             print "Error : failed to touch_to_leave !"
             return -1
@@ -420,12 +429,12 @@ class MonkeyDaemon(object):
         if self.touch_to_enter_main() != 0:
             return -1
         self.touch_to_enter_msgs()
-        self.device.drag((300, 150),(1000, 150),0.2,1)
-        # self.touchByMonkeyPixel(self.emulator['qqName'][0],self.emulator['qqName'][1])
+        # self.device.drag((300, 150),(1000, 150),0.2,1)
+        self.touchByMonkeyPixel(self.emulator['qqName'][0],self.emulator['qqName'][1])
         nickname = self.get_hierarchy_view_by_id('id/nickname')
         self.qq['qqName'] = self.getTextByMonkeyView(nickname)
-        self.device.drag((1000, 150),(300, 150),0.2,1)
-        # self.touch_to_leave()
+        # self.device.drag((1000, 150),(300, 150),0.2,1)
+        self.touch_to_leave()
         if self.qq['qqName']:
             print "Info : qq name is %s !" % self.qq['qqName']
             return 0
@@ -452,7 +461,7 @@ class MonkeyDaemon(object):
         self.groupListUpdating = 1
         if self.touch_to_enter_grouplist() != 0:
             return -1
-        for drag in range(0,1):
+        for drag in range(0,2):
             if self.is_info() == 0:
                 self.touch_to_leave()
             if self.is_group() == 0:
@@ -460,8 +469,9 @@ class MonkeyDaemon(object):
             print "Info : drag for %s time !" % drag
             if drag != 0:
                 try:
-                    self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
+                    # self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
                     # self.device.drag((480/2, 750),(480/2, 190),0.2,1)
+                    self.drag_to_page_down()
                 except:
                     print "Error : failed for the %s drag !" % drag
 
@@ -495,8 +505,8 @@ class MonkeyDaemon(object):
                     'groupName': self.getTextByMonkeyView(groupNameView),
                     'drag':drag,
                     # 363 is qb_troop_list_view.top, 156是整个一条group的高度。
-                    # 88 / 182
-                    'UILocation': group.top + 156/2 + 363,
+                    # 78 / 182
+                    'UILocation': group.top + 78/2 + 182,
                     'index':index,
                     'msgs': [],
                     'storedMsgs': []
@@ -504,7 +514,8 @@ class MonkeyDaemon(object):
 
                 # 点击进入到群组会话中，去获取groupId
                 # 第一个和最后一个群组的uilocation需要额外处理，以防点到屏幕外边去了。
-                if item['UILocation'] < 370 or item['UILocation'] > 1760:
+                # if item['UILocation'] < 370 or item['UILocation'] > 1760:
+                if item['UILocation'] < 200 or item['UILocation'] > 760:
                     print "Info : skip this group in case we touch screen incorrectly !"
                     continue
                 groupId = ''
@@ -568,7 +579,8 @@ class MonkeyDaemon(object):
                 (possibleDrag, possibleUILocation, target_group)
         if possibleDrag > 0:
             for i in range(0,possibleDrag):
-                self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
+                # self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
+                self.drag_to_page_down()
 
         if self.touchByMonkeyPixel(self.emulator['width']/2,possibleUILocation) == 0:
             if self.is_group() == 0:
@@ -581,7 +593,8 @@ class MonkeyDaemon(object):
                 # # 以后可以把找到的group的位置更新下
                 # if title == target_group_name:
                 if self.get_group_id() == target_group:
-                    self.currentGroup['UILocation'] = possibleUILocation
+                    self.currentGroup['groupId'] = target_group
+                    self.currentGroup['groupName'] = target_group_name
                     return 0
                 else:
                     print "Info : failed to enter group %s via possibleDrag %s , possibleUILocation %s !" % \
@@ -626,18 +639,19 @@ class MonkeyDaemon(object):
             if groupName != target_group_name:
                 continue
 
-            # 363 is qb_troop_list_view.top, 156是整个一条group的高度。                    
-            UILocation = group.top + 156/2 + 363
+            # 363 is qb_troop_list_view.top, 156是整个一条group的高度。# 78 / 182
+            UILocation = group.top + 78/2 + 182
             # groupName对了，然后看groupId。暂时不要去解析groupName，耗时
             # 第一个和最后一个群组的uilocation需要额外处理，以防点到屏幕外边去了。
-            if UILocation < 370 or UILocation > 1760:
+            if UILocation < 200 or UILocation > 760:
                 print "Info : skip this group in case we touch screen incorrectly !"
                 continue
             # 0.5s
             if self.touchByMonkeyPixel(self.emulator['width']/2,UILocation) == 0:
                 if self.is_group() == 0:
                     if self.get_group_id() == target_group:
-                        self.currentGroup['UILocation'] = UILocation
+                        self.currentGroup['groupId'] = target_group
+                        self.currentGroup['groupName'] = target_group_name
                         self.groupList[target_group]['UILocation'] = UILocation
                         return 0
         return -1
@@ -718,16 +732,16 @@ class MonkeyDaemon(object):
             return 0
         # -1
         # 向上drag一次，possibledrag非0时候
-        self.device.drag((1080/2, 400),(1080/2, 1700),0.2,1)
-        # self.drag_to_page_up()
+        # self.device.drag((1080/2, 400),(1080/2, 1700),0.2,1)
+        self.drag_to_page_up()
         if self.find_target_group_from_list(target_group) == 0:
             return 0
         # 2
         # 向下drag一次
-        self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
-        self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
-        # self.drag_to_page_down()
-        # self.drag_to_page_down()
+        # self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
+        # self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
+        self.drag_to_page_down()
+        self.drag_to_page_down()
         if self.find_target_group_from_list(target_group) == 0 :
             return 0
         print "Error : failed to enter group %s !" % target_group
@@ -777,8 +791,8 @@ class MonkeyDaemon(object):
             # if is_stop_drag:
                 # break
             if msgDrag !=0:
-                self.device.drag((1080/2, 500),(1080/2, 1550),0.1,1)
-                # self.drag_to_page_down()
+                # self.device.drag((1080/2, 500),(1080/2, 1550),0.1,1)
+                self.drag_to_page_up()
 
             hViewer = None
             _msgs = []
@@ -850,8 +864,8 @@ class MonkeyDaemon(object):
                 msgs.append(item)
         # 针对新消息的提示处理。                
         for i in range(0,6):
-            self.device.drag((1080/2, 1550),(1080/2, 500),0.1,1)
-            # self.drag_to_page_up()
+            # self.device.drag((1080/2, 1550),(1080/2, 500),0.1,1)
+            self.drag_to_page_down()
 
         if msgs:
             self.currentGroup['msgs'] = msgs
