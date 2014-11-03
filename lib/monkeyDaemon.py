@@ -23,6 +23,35 @@ class MonkeyDaemon(object):
         print '-------- MonkeyDaemon __init__ ---------'
         self.qq = qq
 
+        self.emulator = {
+            'width':1080,
+            'height':1920,
+            'qqStart':[150,1650],
+            'qqName':[75,150],
+            'msgs':[200,1700],
+            'contacts':[500,1700],
+            'groups':[700,500],
+            'myGroups':[300,300],
+            'info':[1000,150],
+            'heartbeat':[430,150],
+            'paste':[270,1590],
+            'leave':[150,150],
+            'self_msg':930,
+        }
+
+        # self.emulator = {
+        #     'width':480,
+        #     'height':800,
+        #     'qqStart':[50,750],
+        #     'qqName':[40,75],
+        #     'msgs':[80,750],
+        #     'contacts':[240,750],
+        #     'groups':[300,230],
+        #     'myGroups':[100,150],
+        #     'info':[450,75],
+        #     'heartbeat':[200,75],
+        # }
+
         # add a api to get pure group list, on-going
         self.screenUsing = 0
         self.groupListUpdating = 0
@@ -185,14 +214,19 @@ class MonkeyDaemon(object):
         try:
             hViewer = self.device.getHierarchyViewer()
             if hViewer.findViewById('id/listView1'):
+                print "Info : I am in the view is_group !"
                 return 'is_group'
             elif hViewer.findViewById('id/qb_troop_list_view'):
+                print "Info : I am in the view is_grouplist !"
                 return 'is_grouplist'
             elif hViewer.findViewById('id/elv_buddies'):
+                print "Info : I am in the view is_contacts !"
                 return 'is_contacts'
             elif hViewer.findViewById('id/common_xlistview'):
+                print "Info : I am in the view is_info !"
                 return 'is_info'
             elif hViewer.findViewById('id/recent_chat_list'):
+                print "Info : I am in the view is_chatlist !"
                 return 'is_chatlist'
             else:
                 return ''
@@ -217,31 +251,34 @@ class MonkeyDaemon(object):
             return func(self, *args)
         return new_func
 
+    def drag_to_page_down(self):
+        try:
+            self.device.shell("input keyevent KEYCODE_PAGE_DOWN")
+        except:
+            print "Error : failed to drag_to_page_down !"
+            return -1
+
+    def drag_to_page_up(self):
+        try:
+            self.device.shell("input keyevent KEYCODE_PAGE_UP")
+        except:
+            print "Error : failed to drag_to_page_up !"
+            return -1
+
     def touch_to_enter_home_screen(self):
         try:
             return self.touchByMonkeyPixel(1080/2,1850)
+            # self.device.shell("input keyevent KEYCODE_HOME")
         except:
             print "Error : failed to touch_to_enter_home_screen !"
             return -1            
-
-    # @touch_wait_screen
-    def touchByMonkeyId(self,id):
-        # print '------------ touchByMonkeyId %s -------------' % id
-        try:
-            self.screenUsing = 1
-            self.easy_device.touch(By.id(id), self.easy_device.DOWN_AND_UP)
-            sleep(0.5)
-            self.screenUsing = 0
-            return 0
-        except:
-            print 'Error : failed to dump view : %s !' % id
-            return -1
 
     # @touch_wait_screen
     def touch_to_leave(self):
         # print '------------ touch_to_leave -------------'
         try:
             return self.touchByMonkeyPixel(150,150)
+            # self.device.shell("input keyevent KEYCODE_BACK")
         except:
             print "Error : failed to touch_to_leave !"
             return -1
@@ -270,7 +307,7 @@ class MonkeyDaemon(object):
     def touch_to_enter_info(self):
         # print '------------ touch_to_enter_info -------------'
         try:
-            return self.touchByMonkeyPixel(1000,150)
+            return self.touchByMonkeyPixel(self.emulator['info'][0],self.emulator['info'][1])
         except:
             print "Error : failed to touch_to_enter_info !"
             return -1
@@ -281,22 +318,19 @@ class MonkeyDaemon(object):
         print '------------ touch_to_enter_grouplist -------------'     
         if self.touch_to_enter_main() != 0:
             return -1
-        view = self.get_current_view()
-        if view == 'is_contacts' or view == 'is_chatlist':
-            if self.touch_to_enter_contacts() == 0:
-                if self.touchByMonkeyPixel(700,500) ==0 :
-                    if self.is_grouplist() == 0:
-                        return self.touchByMonkeyPixel(300,300)
-        else:
-            # print "Error : failed to touch_to_enter_grouplist !"
-            return -1
+        if self.touch_to_enter_contacts() == 0:
+            if self.touchByMonkeyPixel(self.emulator['groups'][0],self.emulator['groups'][1]) == 0:
+                if self.is_grouplist() == 0:
+                    if self.touchByMonkeyPixel(self.emulator['myGroups'][0],self.emulator['myGroups'][1]) == 0:
+                        return 0
+        return -1
 
     # @touch_wait_screen
     def touch_to_enter_msgs(self):
         # 不把is_3_columns()放这里边，是为了单独处理QQ restart闪退情况。
         print '------------ touch_to_enter_msgs -------------'
-        if self.touchByMonkeyPixel(300,1700) == 0:
-            return self.touchByMonkeyPixel(300,1700)
+        if self.touchByMonkeyPixel(self.emulator['msgs'][0],self.emulator['msgs'][1]) == 0:
+            return self.touchByMonkeyPixel(self.emulator['msgs'][0],self.emulator['msgs'][1])
         else:
             print "Error : failed to touch_to_enter_msgs !"
             return -1
@@ -305,8 +339,8 @@ class MonkeyDaemon(object):
     def touch_to_enter_contacts(self):
         # 不在is_3_columns()判断放在里边，是为了单独处理QQ restart闪退情况。
         print '------------ touch_to_enter_contacts -------------'
-        if self.touchByMonkeyPixel(500,1700) == 0:
-            return self.touchByMonkeyPixel(500,1700)
+        if self.touchByMonkeyPixel(self.emulator['contacts'][0],self.emulator['contacts'][1]) == 0:
+            return self.touchByMonkeyPixel(self.emulator['contacts'][0],self.emulator['contacts'][1])
         else:
             print "Error : failed to touch_to_enter_contacts !"
             return -1
@@ -322,6 +356,19 @@ class MonkeyDaemon(object):
             return 0
         except:
             # sleep(1)
+            return -1
+
+    # @touch_wait_screen
+    def touchByMonkeyId(self,id):
+        # print '------------ touchByMonkeyId %s -------------' % id
+        try:
+            self.screenUsing = 1
+            self.easy_device.touch(By.id(id), self.easy_device.DOWN_AND_UP)
+            sleep(0.5)
+            self.screenUsing = 0
+            return 0
+        except:
+            print 'Error : failed to dump view : %s !' % id
             return -1
 
     def getTextByMonkeyView(self,view):
@@ -349,7 +396,7 @@ class MonkeyDaemon(object):
         print '------------ restart_qq_monkey -------------'
         while(self.is_home_screen()==0):
             # self.touch_to_enter_home_screen()
-            self.touchByMonkeyPixel(150,1650)
+            self.touchByMonkeyPixel(self.emulator['qqStart'][0],self.emulator['qqStart'][1])
             sleep(3)
             # 一开始启动，QQ闪退的情况
             if self.is_3_columns() == 0:
@@ -372,17 +419,17 @@ class MonkeyDaemon(object):
         print '------------ get_qqName_monkey ------------'
         if self.touch_to_enter_main() != 0:
             return -1
-        view = self.get_current_view()
-        if view == 'is_chatlist' or view == 'is_contacts':
-            self.touch_to_enter_msgs()
-            self.device.drag((300, 150),(1000, 150),0.2,1)
-            nickname = self.get_hierarchy_view_by_id('id/nickname')
-            self.qq['qqName'] = self.getTextByMonkeyView(nickname)
-            self.device.drag((1000, 150),(300, 150),0.2,1)
+        self.touch_to_enter_msgs()
+        self.device.drag((300, 150),(1000, 150),0.2,1)
+        # self.touchByMonkeyPixel(self.emulator['qqName'][0],self.emulator['qqName'][1])
+        nickname = self.get_hierarchy_view_by_id('id/nickname')
+        self.qq['qqName'] = self.getTextByMonkeyView(nickname)
+        self.device.drag((1000, 150),(300, 150),0.2,1)
+        # self.touch_to_leave()
+        if self.qq['qqName']:
+            print "Info : qq name is %s !" % self.qq['qqName']
             return 0
-        else:
-            print "Error : failed to get QQ name !"
-            return -1
+        return -1
 
     def get_grouplist(self):
         if not os.path.isfile(self.qq['grouplistfile']):
@@ -405,7 +452,7 @@ class MonkeyDaemon(object):
         self.groupListUpdating = 1
         if self.touch_to_enter_grouplist() != 0:
             return -1
-        for drag in range(0,15):
+        for drag in range(0,1):
             if self.is_info() == 0:
                 self.touch_to_leave()
             if self.is_group() == 0:
@@ -414,6 +461,7 @@ class MonkeyDaemon(object):
             if drag != 0:
                 try:
                     self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
+                    # self.device.drag((480/2, 750),(480/2, 190),0.2,1)
                 except:
                     print "Error : failed for the %s drag !" % drag
 
@@ -447,6 +495,7 @@ class MonkeyDaemon(object):
                     'groupName': self.getTextByMonkeyView(groupNameView),
                     'drag':drag,
                     # 363 is qb_troop_list_view.top, 156是整个一条group的高度。
+                    # 88 / 182
                     'UILocation': group.top + 156/2 + 363,
                     'index':index,
                     'msgs': [],
@@ -459,7 +508,7 @@ class MonkeyDaemon(object):
                     print "Info : skip this group in case we touch screen incorrectly !"
                     continue
                 groupId = ''
-                if self.touchByMonkeyPixel(1080/2,item['UILocation']) == 0:
+                if self.touchByMonkeyPixel(self.emulator['width']/2,item['UILocation']) == 0:
                     if self.is_group() == 0:
                         for i in range(0,3):
                             groupId = self.get_group_id()
@@ -512,7 +561,7 @@ class MonkeyDaemon(object):
         return groupId
 
     def check_group_by_possible_location(self,target_group):
-        target_group_name = self.groupList[target_group]['groupName'].encode('utf8')
+        target_group_name = self.groupList[target_group]['groupName']#.encode('utf8')
         possibleDrag = self.groupList[target_group]['drag']
         possibleUILocation = self.groupList[target_group]['UILocation']
         print "Info : possibleDrag %s , possibleUILocation %s to enter group %s !" % \
@@ -521,18 +570,19 @@ class MonkeyDaemon(object):
             for i in range(0,possibleDrag):
                 self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
 
-        if self.touchByMonkeyPixel(1080/2,possibleUILocation) == 0:
+        if self.touchByMonkeyPixel(self.emulator['width']/2,possibleUILocation) == 0:
             if self.is_group() == 0:
                 # 可先判断groupName，相同再进去获取id；否则leave.
-                title_view = self.get_hierarchy_view_by_id('id/title')
-                title = self.getTextByMonkeyView(title_view)
-                print "actual_group_name : %s" % title
-                print "target_group_name : %s" % target_group_name
-                # 以后可以把找到的group的位置更新下
-                if title == target_group_name:
-                    if self.get_group_id() == target_group:
-                        self.currentGroup['UILocation'] = possibleUILocation
-                        return 0
+                # 直接去判断groupId。省时间。
+                # title_view = self.get_hierarchy_view_by_id('id/title')
+                # title = self.getTextByMonkeyView(title_view)
+                # print "actual_group_name : %s" % title
+                # print "target_group_name : %s" % target_group_name
+                # # 以后可以把找到的group的位置更新下
+                # if title == target_group_name:
+                if self.get_group_id() == target_group:
+                    self.currentGroup['UILocation'] = possibleUILocation
+                    return 0
                 else:
                     print "Info : failed to enter group %s via possibleDrag %s , possibleUILocation %s !" % \
                             (target_group, possibleDrag, possibleUILocation)            
@@ -573,7 +623,6 @@ class MonkeyDaemon(object):
             groupNameView = group.children[1].children[2].children[1]
             groupName = self.getTextByMonkeyView(groupNameView)
             print "this_group_name : ", groupName
-            print "target_group_name : ", target_group_name
             if groupName != target_group_name:
                 continue
 
@@ -585,7 +634,7 @@ class MonkeyDaemon(object):
                 print "Info : skip this group in case we touch screen incorrectly !"
                 continue
             # 0.5s
-            if self.touchByMonkeyPixel(1080/2,UILocation) == 0:
+            if self.touchByMonkeyPixel(self.emulator['width']/2,UILocation) == 0:
                 if self.is_group() == 0:
                     if self.get_group_id() == target_group:
                         self.currentGroup['UILocation'] = UILocation
@@ -609,7 +658,7 @@ class MonkeyDaemon(object):
 
     def heartbeat_monkey(self):
         print '------------ heartbeat_monkey ------------'
-        self.touchByMonkeyPixel(430,150)
+        self.touchByMonkeyPixel(self.emulator['heartbeat'][0],self.emulator['heartbeat'][1])
         groupList = [{'groupId': key, 'groupName': value['groupName']}
                      for key, value in self.groupList.iteritems()]
         data = {
@@ -646,7 +695,7 @@ class MonkeyDaemon(object):
     # 此处，不考虑UILocation
     def enter_group(self,data):
         target_group = data['group']
-        target_group_name = self.groupList[target_group]['groupName'].encode('utf8')
+        target_group_name = self.groupList[target_group]['groupName']#.encode('utf8')
         print '\n------------ enter_group : %s %s' % (target_group_name,target_group)
 
         if self.groupListUpdating == 1:
@@ -670,12 +719,15 @@ class MonkeyDaemon(object):
         # -1
         # 向上drag一次，possibledrag非0时候
         self.device.drag((1080/2, 400),(1080/2, 1700),0.2,1)
+        # self.drag_to_page_up()
         if self.find_target_group_from_list(target_group) == 0:
             return 0
         # 2
         # 向下drag一次
         self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
         self.device.drag((1080/2, 1700),(1080/2, 400),0.2,1)
+        # self.drag_to_page_down()
+        # self.drag_to_page_down()
         if self.find_target_group_from_list(target_group) == 0 :
             return 0
         print "Error : failed to enter group %s !" % target_group
@@ -692,7 +744,7 @@ class MonkeyDaemon(object):
         self.easy_device.touch(By.id("id/input"), self.easy_device.DOWN)
         sleep(0.5)
         self.easy_device.touch(By.id("id/input"), self.easy_device.UP)
-        self.touchByMonkeyPixel(270,1590)
+        self.touchByMonkeyPixel(self.emulator['paste'][0],self.emulator['paste'][1])
         # 1s
         inputid = self.get_hierarchy_view_by_id('id/input')
         if inputid:
@@ -726,6 +778,7 @@ class MonkeyDaemon(object):
                 # break
             if msgDrag !=0:
                 self.device.drag((1080/2, 500),(1080/2, 1550),0.1,1)
+                # self.drag_to_page_down()
 
             hViewer = None
             _msgs = []
@@ -751,14 +804,14 @@ class MonkeyDaemon(object):
                     if t.id == 'id/chat_item_head_icon':
                         # < 1s
                         layoutLeft = t.namedProperties.get('layout:mLeft').value.encode('utf8')
-                        if layoutLeft == '930':
+                        if layoutLeft == self.emulator['self_msg']:
                             break
                     if t.id == 'id/chat_item_nick_name':
                         item['nickname'] = self.getTextByMonkeyView(t)
                     if t.id == 'id/chat_item_content_layout':
                         item['content'] = self.getTextByMonkeyView(t)
                 # 自己发送的消息
-                if layoutLeft == '930':
+                if layoutLeft == self.emulator['self_msg']:
                     continue
                 else:
                     if item['nickname'].endswith(':'):
@@ -798,6 +851,7 @@ class MonkeyDaemon(object):
         # 针对新消息的提示处理。                
         for i in range(0,6):
             self.device.drag((1080/2, 1550),(1080/2, 500),0.1,1)
+            # self.drag_to_page_up()
 
         if msgs:
             self.currentGroup['msgs'] = msgs
