@@ -7,8 +7,8 @@ from time import sleep
 from threading import Thread
 from optparse import OptionParser
 
-jython_lib = '/usr/local/Cellar/jython/2.5.3/libexec/Lib'
-# jython_lib = '/home/chris/jython2.5.3/Lib'
+# jython_lib = '/usr/local/Cellar/jython/2.5.3/libexec/Lib'
+jython_lib = '/home/chris/jython2.5.3/Lib'
 sys.path.append("%s/site-packages/simplejson-3.6.3-py2.5.egg" % jython_lib)
 import simplejson as json
 
@@ -37,7 +37,6 @@ def monkey_info():
 
 @app.post('/net_command')
 def net_command():
-    ret = ''
     data = {
         'cmd': request.forms.get('cmd', None),
         'group': request.forms.get('group', None),        
@@ -50,8 +49,8 @@ def net_command():
         print 'Info : dispatch cmd to net_command : ', data['cmd']
         executer = getattr(md, data['cmd'])
         ret = executer(data)
-        if ret == -1:
-            return json.dumps({'status': 1, 'data': ret})
+        if isinstance(ret, int):
+            return json.dumps({'status': ret})
         else:
             return json.dumps({'status': 0, 'data': ret})
 
@@ -70,21 +69,15 @@ if __name__ == '__main__':
 
     qqlist[options.qq]['url'] = "http://%s:%s/net_command" % \
             (get_local_ip(), qqlist[options.qq]['port'])
-    qqlist[options.qq]['robot_url'] = 'http://0.0.0.0:8017/net_command'
-    # qqlist[options.qq]['robot_url'] = 'http://10.128.121.226:8001/net_command'
+    # qqlist[options.qq]['robot_url'] = 'http://0.0.0.0:8017/net_command'
+    qqlist[options.qq]['robot_url'] = 'http://192.168.217.191:8001/net_command'
     qqlist[options.qq]['grouplistfile'] = './grouplist/%s.grouplist' % options.qq   
 
     global md
     md = MonkeyDaemon(qqlist[options.qq])
-    print "Info : get the qqName : ",md.qq.get('qqName')
-    if md.qq.get('qqName'):
-        print '------------Now, Android QQ daemon is running for %s on url %s ----------' \
-            % (md.qq['qqId'], md.qq['url'])
-        th = Thread(target=start_listen, args=[ md.qq['port'] ])
-        th.setDaemon(True)
-        th.start()
-        md.monkey_task_loop()
-    else:
-        print "Error : failed to start Android QQ daemon for %s !" % options.qq
-        sys.exit(1)
-
+    print '------------Now, Android QQ daemon is running for %s on url %s ----------' \
+        % (md.qq['qqId'], md.qq['url'])
+    th = Thread(target=start_listen, args=[ md.qq['port'] ])
+    th.setDaemon(True)
+    th.start()
+    md.monkey_task_loop()
