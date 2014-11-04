@@ -1,12 +1,75 @@
 {
+    "ip":"10.128.38.132",
+    "2902424837": {
+        "qqId":"2902424837",
+        "port":"8054",
+        "device":"Nexus-S",
+        "deviceid":"emulator-5554"
+    },
+    "2195356784": {
+        "qqId":"2195356784",
+        "port":"8056",
+        "device":"S1",
+        "deviceid":"emulator-5556"
+    },
     "3040493963": {
         "qqId":"3040493963",
-        "port":"8003",
+        "port":"8058",
+        "device":"S2",
         "deviceid":"emulator-5558"
     },
     "3067487368": {
         "qqId":"3067487368",
-        "port":"8004",
-        "deviceid":"192.168.56.102:5555"
+        "port":"8060",
+        "device":"S3",
+        "deviceid":"emulator-5560"
+    },
+    "2901490931": {
+        "qqId":"2901490931",
+        "port":"8062",
+        "device":"S4",
+        "deviceid":"emulator-5562"
+    },    
+    "3083207001": {
+        "qqId":"3083207001",
+        "port":"8054",
+        "device":"S5",
+        "deviceid":"emulator-5554"
+    },
+    "123": {
+        "qqId":"3083207001",
+        "port":"8066",
+        "device":"S6",
+        "deviceid":"emulator-5566"
+    },
+    "123": {
+        "qqId":"3083207001",
+        "port":"8068",
+        "device":"S7",
+        "deviceid":"emulator-5568"
+    },
+    "123": {
+        "qqId":"3083207001",
+        "port":"8070",
+        "device":"S8",
+        "deviceid":"emulator-5570"
+    },
+    "123": {
+        "qqId":"3083207001",
+        "port":"8072",
+        "device":"S9",
+        "deviceid":"emulator-5572"
+    },
+    "123": {
+        "qqId":"3083207001",
+        "port":"8074",
+        "device":"S10",
+        "deviceid":"emulator-5574"
+    },
+    "123": {
+        "qqId":"3083207001",
+        "port":"8076",
+        "device":"S11",
+        "deviceid":"emulator-5576"
     }
 }
