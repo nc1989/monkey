@@ -193,19 +193,15 @@ class MonkeyDaemon(object):
         else:
             return 1
 
-    def is_3_columns(self):
-        # 按照title来判断呢？
-        # print '------------ is_3_columns ------------'
+    def is_chatlist(self):
         recent_chat_list = None
         try:
             recent_chat_list = self.get_hierarchy_view_by_id('id/recent_chat_list')
         except:
             print "Error : failed to parse view id/recent_chat_list !"
         if recent_chat_list:
-            # print "Info : already in the 3 columns !"
             return 0
         else:
-            # print "Info : I am not in the 3 columns !"
             return -1
 
     ### basic check steps ###
@@ -337,7 +333,7 @@ class MonkeyDaemon(object):
 
     # @touch_wait_screen
     def touch_to_enter_msgs(self):
-        # 不把is_3_columns()放这里边，是为了单独处理QQ restart闪退情况。
+        # 不把is_chatlist()放这里边，是为了单独处理QQ restart闪退情况。
         print '------------ touch_to_enter_msgs -------------'
         if self.touchByMonkeyPixel(self.emulator['msgs'][0],self.emulator['msgs'][1]) == 0:
             return self.touchByMonkeyPixel(self.emulator['msgs'][0],self.emulator['msgs'][1])
@@ -347,7 +343,7 @@ class MonkeyDaemon(object):
 
     # @touch_wait_screen
     def touch_to_enter_contacts(self):
-        # 不在is_3_columns()判断放在里边，是为了单独处理QQ restart闪退情况。
+        # 不把is_chatlist()判断放在里边，是为了单独处理QQ restart闪退情况。
         print '------------ touch_to_enter_contacts -------------'
         if self.touchByMonkeyPixel(self.emulator['contacts'][0],self.emulator['contacts'][1]) == 0:
             return self.touchByMonkeyPixel(self.emulator['contacts'][0],self.emulator['contacts'][1])
@@ -409,20 +405,12 @@ class MonkeyDaemon(object):
             self.touchByMonkeyPixel(self.emulator['qqStart'][0],self.emulator['qqStart'][1])
             sleep(3)
             # 一开始启动，QQ闪退的情况
-            if self.is_3_columns() == 0:
+            if self.is_chatlist() == 0:
                 self.touch_to_enter_contacts()
             # 点击联系人，QQ闪退的情况
             sleep(2)
         print "Info : qq has been restarted correctly !"
-        return 0           
-        # if self.is_3_columns() == 0:
-        #     return 0
-        # elif self.is_grouplist() == 0:
-        #     return 0
-        # else:
-        #     print "Error : failed to restart QQ ! Try again !"
-        #     self.touch_to_enter_home_screen()
-        #     return -1
+        return 0
 
     # @check_qq_status
     def get_qqName_monkey(self):
@@ -434,7 +422,7 @@ class MonkeyDaemon(object):
         self.touchByMonkeyPixel(self.emulator['qqName'][0],self.emulator['qqName'][1])
         nickname = self.get_hierarchy_view_by_id('id/nickname')
         self.qq['qqName'] = self.getTextByMonkeyView(nickname)
-        self.device.drag((400, 150),(150, 150),0.2,1)
+        self.device.drag((410, 70),(150, 70),0.2,1)
         if self.qq['qqName']:
             print "Info : qq name is %s !" % self.qq['qqName']
             return 0
