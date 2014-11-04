@@ -51,6 +51,7 @@ class MonkeyDaemon(object):
             'info':[450,75],
             'heartbeat':[200,75],
             'paste':[130,710],
+            'leave':[60,70],
             'self_msg':'404',
         }
 
@@ -214,8 +215,11 @@ class MonkeyDaemon(object):
 
     def get_current_view(self):
         try:
+            print ">>>1:",time()
             hViewer = self.device.getHierarchyViewer()
+            print ">>>2:",time()
             if hViewer.findViewById('id/listView1'):
+                print ">>>3:",time()
                 print "Info : I am in the view is_group !"
                 return 'is_group'
             elif hViewer.findViewById('id/qb_troop_list_view'):
@@ -284,10 +288,10 @@ class MonkeyDaemon(object):
     def touch_to_leave(self):
         # print '------------ touch_to_leave -------------'
         try:
-            # return self.touchByMonkeyPixel(150,150)
+            self.touchByMonkeyPixel(self.emulator['leave'][0],self.emulator['leave'][1])
             # self.device.shell("input keyevent KEYCODE_BACK")
-            self.device.press('KEYCODE_BACK','DOWN_AND_UP','')
-            sleep(1)
+            # self.device.press('KEYCODE_BACK','DOWN_AND_UP','')
+            return 0
         except:
             print "Error : failed to touch_to_leave !"
             return -1
@@ -461,7 +465,7 @@ class MonkeyDaemon(object):
         self.groupListUpdating = 1
         if self.touch_to_enter_grouplist() != 0:
             return -1
-        for drag in range(0,2):
+        for drag in range(0,15):
             if self.is_info() == 0:
                 self.touch_to_leave()
             if self.is_group() == 0:
@@ -572,7 +576,7 @@ class MonkeyDaemon(object):
         return groupId
 
     def check_group_by_possible_location(self,target_group):
-        target_group_name = self.groupList[target_group]['groupName']#.encode('utf8')
+        target_group_name = self.groupList[target_group]['groupName']
         possibleDrag = self.groupList[target_group]['drag']
         possibleUILocation = self.groupList[target_group]['UILocation']
         print "Info : possibleDrag %s , possibleUILocation %s to enter group %s !" % \
@@ -611,7 +615,7 @@ class MonkeyDaemon(object):
         print '------------ find_target_group_from_list ------------'
         if self.is_grouplist() != 0:
             return -1
-        target_group_name = self.groupList[target_group]['groupName'].encode('utf8')
+        target_group_name = self.groupList[target_group]['groupName']
         # < 1s
         qb_troop_list_view = self.get_hierarchy_view_by_id('id/qb_troop_list_view')
         if qb_troop_list_view == None:
@@ -635,8 +639,8 @@ class MonkeyDaemon(object):
             # 先根据群名称来查找
             groupNameView = group.children[1].children[2].children[1]
             groupName = self.getTextByMonkeyView(groupNameView)
-            print "this_group_name : ", groupName
-            if groupName != target_group_name:
+            print "Info : this_group_name : ", groupName
+            if groupName != target_group_name.encode('utf8'):
                 continue
 
             # 363 is qb_troop_list_view.top, 156是整个一条group的高度。# 78 / 182
@@ -709,8 +713,8 @@ class MonkeyDaemon(object):
     # 此处，不考虑UILocation
     def enter_group(self,data):
         target_group = data['group']
-        target_group_name = self.groupList[target_group]['groupName']#.encode('utf8')
-        print '\n------------ enter_group : %s %s' % (target_group_name,target_group)
+        target_group_name = self.groupList[target_group]['groupName']
+        print '\n------------ enter_group : %s %s' % (target_group_name.encode('utf8'),target_group)
 
         if self.groupListUpdating == 1:
             print "Info : groupList is updating now ! Please wait about 2 minutes !"
