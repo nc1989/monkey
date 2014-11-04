@@ -39,14 +39,14 @@ def monkey_info():
 def net_command():
     data = {
         'cmd': request.forms.get('cmd', None),
-        'group': request.forms.get('group', None),        
+        'group': request.forms.get('group', None),
         'msg': request.forms.get('msg', None)
     }
     if not data['cmd']:
         print "Error: cmd is not right!"
         return json.dumps({"status": 1, "err_msg": 'cmd is not right!'})
     if hasattr(md, data['cmd']):
-        print 'Info : dispatch cmd to net_command : ', data['cmd']
+        print '\nInfo : dispatch cmd to net_command : ', data['cmd']
         executer = getattr(md, data['cmd'])
         ret = executer(data)
         if isinstance(ret, int):
@@ -71,7 +71,7 @@ if __name__ == '__main__':
             (qqlist['ip'], qqlist[options.qq]['port'])
     # qqlist[options.qq]['robot_url'] = 'http://0.0.0.0:8017/net_command'
     qqlist[options.qq]['robot_url'] = 'http://192.168.217.191:8001/net_command'
-    qqlist[options.qq]['grouplistfile'] = './grouplist/%s.grouplist' % options.qq   
+    qqlist[options.qq]['grouplistfile'] = './grouplist/%s.grouplist' % options.qq
 
     global md
     md = MonkeyDaemon(qqlist[options.qq])
