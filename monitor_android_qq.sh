@@ -1,14 +1,5 @@
 #!/bin/sh
 
-qq="3067487368"
-curtime=`date +%Y-%m-%d-%H:%M`
-logdir="./log/${qq}-${curtime}"
-`mkdir -p ${logdir}`
-logfile="${logdir}/${qq}.log"
-errfile="${logdir}/${qq}.err"
-`touch ${logfile}`
-`touch ${errfile}`
-
 start_android_qq()
 {
 	# md_pid=`pgrep -lf monkeyrunner | grep ${qq} | awk '{print $1}'`
@@ -36,6 +27,15 @@ monitor_adb()
 
 main()
 {
+	qq=$1
+	curtime=`date +%Y-%m-%d-%H:%M`
+	logdir="./log/${qq}-${curtime}"
+	`mkdir -p ${logdir}`
+	logfile="${logdir}/${qq}.log"
+	errfile="${logdir}/${qq}.err"
+	`touch ${logfile}`
+	`touch ${errfile}`
+
 	err1="Error sending touch event"
 	err2="Error sending drag start event"
 	# err2="java.net.SocketException: Broken pipe"
