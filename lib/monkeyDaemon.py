@@ -215,11 +215,8 @@ class MonkeyDaemon(object):
 
     def get_current_view(self):
         try:
-            print ">>>1:",time()
             hViewer = self.device.getHierarchyViewer()
-            print ">>>2:",time()
             if hViewer.findViewById('id/listView1'):
-                print ">>>3:",time()
                 print "Info : I am in the view is_group !"
                 return 'is_group'
             elif hViewer.findViewById('id/qb_troop_list_view'):
@@ -437,8 +434,7 @@ class MonkeyDaemon(object):
         self.touchByMonkeyPixel(self.emulator['qqName'][0],self.emulator['qqName'][1])
         nickname = self.get_hierarchy_view_by_id('id/nickname')
         self.qq['qqName'] = self.getTextByMonkeyView(nickname)
-        # self.device.drag((1000, 150),(300, 150),0.2,1)
-        self.touch_to_leave()
+        self.device.drag((400, 150),(150, 150),0.2,1)
         if self.qq['qqName']:
             print "Info : qq name is %s !" % self.qq['qqName']
             return 0
@@ -712,9 +708,10 @@ class MonkeyDaemon(object):
 
     # 此处，不考虑UILocation
     def enter_group(self,data):
+        t1=time()
         target_group = data['group']
         target_group_name = self.groupList[target_group]['groupName']
-        print '\n------------ enter_group : %s %s' % (target_group_name.encode('utf8'),target_group)
+        print '------------ enter_group : %s %s' % (target_group_name.encode('utf8'),target_group)
 
         if self.groupListUpdating == 1:
             print "Info : groupList is updating now ! Please wait about 2 minutes !"
@@ -726,6 +723,8 @@ class MonkeyDaemon(object):
         if self.touch_to_enter_grouplist() != 0:
             print "Error : failed to touch_to_enter_grouplist !"
             return 3
+        t_tmp=time()
+        print "Info : it takes %s time to enter grouplist" % str(t_tmp-t1)
 
         # 通过possibleDrag来缩小查找范围。然后从该页的自己、前、后 三个界面查找。
         # 下一步，可以通过possibleIndex，在自己界面进一步缩小查找范围。
@@ -733,12 +732,16 @@ class MonkeyDaemon(object):
 
         # 0
         if self.check_group_by_possible_location(target_group) == 0:
+            t2=time()
+            print "Info : it takes %s time to enter group" % str(t2-t1)
             return 0
         # -1
         # 向上drag一次，possibledrag非0时候
         # self.device.drag((1080/2, 400),(1080/2, 1700),0.2,1)
         self.drag_to_page_up()
         if self.find_target_group_from_list(target_group) == 0:
+            t2=time()
+            print "Info : it takes %s time to enter group" % str(t2-t1)
             return 0
         # 2
         # 向下drag一次
@@ -747,6 +750,8 @@ class MonkeyDaemon(object):
         self.drag_to_page_down()
         self.drag_to_page_down()
         if self.find_target_group_from_list(target_group) == 0 :
+            t2=time()
+            print "Info : it takes %s time to enter group" % str(t2-t1)
             return 0
         print "Error : failed to enter group %s !" % target_group
         return -1
@@ -754,9 +759,10 @@ class MonkeyDaemon(object):
     def send_msg(self,data):
         if not data.get('msg'):
             return 1
-        print '\n------------ send_msg %s' % data['msg']
+        msg = data['msg']
+        print '------------ send_msg %s' % msg
 
-        get_encoded_character(self.qq['deviceid'], data['msg'].decode('utf8'))
+        get_encoded_character(self.qq['deviceid'], msg.decode('utf8'))
         # self.restart_qq_monkey()
 
         self.easy_device.touch(By.id("id/input"), self.easy_device.DOWN)
@@ -764,14 +770,20 @@ class MonkeyDaemon(object):
         self.easy_device.touch(By.id("id/input"), self.easy_device.UP)
         self.touchByMonkeyPixel(self.emulator['paste'][0],self.emulator['paste'][1])
         # 1s
-        inputid = self.get_hierarchy_view_by_id('id/input')
+        inputid = None
+        try:
+            inputid = self.get_hierarchy_view_by_id('id/input')
+        except:
+            print "Error : failed to find view id/input !"
+            return 2
         if inputid:
             text = self.getTextByMonkeyView(inputid)
             print "Info : get msg %s from clipboard !" % text
-            if text.strip().split() == data['msg'].strip().split():
+            if text.strip().split() == msg.strip().split():
                 # 1s
                 if self.touchByMonkeyId('id/fun_btn') == 0:
                 # if self.touchByMonkeyPixel(970,1700) != 0:
+                    print "Info : send msg %s ok !" % msg
                     return 0
             else:
                 delete_code = "input keyevent KEYCODE_DEL"
@@ -782,10 +794,17 @@ class MonkeyDaemon(object):
                     for i in range(0,20):
                         self.device.shell(delete_code)
                     inputid = self.get_hierarchy_view_by_id('id/input')
-        return 0
+                print "Error : failed to send msg %s , Incorrect msg !" % msg
+                return 3
 
     def get_msgs(self,data):
-        print '\n------------ get_msgs ------------'
+        print '------------ get_msgs ------------'
+
+        if self.is_group() != 0:
+            view = self.get_current_view()
+            if view == 'is_info':
+                if self.touch_to_leave() != 0:
+                    return 1
 
         self.currentGroup['msgs'] = []
         dragCount = 3
