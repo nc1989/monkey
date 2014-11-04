@@ -68,7 +68,7 @@ if __name__ == '__main__':
     f.close()
 
     qqlist[options.qq]['url'] = "http://%s:%s/net_command" % \
-            (get_local_ip(), qqlist[options.qq]['port'])
+            (qqlist['ip'], qqlist[options.qq]['port'])
     # qqlist[options.qq]['robot_url'] = 'http://0.0.0.0:8017/net_command'
     qqlist[options.qq]['robot_url'] = 'http://192.168.217.191:8001/net_command'
     qqlist[options.qq]['grouplistfile'] = './grouplist/%s.grouplist' % options.qq   
