@@ -9,8 +9,8 @@ from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 from com.android.monkeyrunner.easy import EasyMonkeyDevice, By
 from com.android.chimpchat.hierarchyviewer import HierarchyViewer
 
-jython_lib = '/usr/local/Cellar/jython/2.5.3/libexec/Lib'
-# jython_lib = '/home/chris/jython2.5.3/Lib'
+# jython_lib = '/usr/local/Cellar/jython/2.5.3/libexec/Lib'
+jython_lib = '/home/chris/jython2.5.3/Lib'
 sys.path.append("%s/site-packages/simplejson-3.6.3-py2.5.egg" % jython_lib)
 import simplejson as json
 
@@ -225,7 +225,7 @@ class MonkeyDaemon(object):
 
     def get_current_view(self):
         window_name = self.get_focus_window_name()
-        if 'ChatActivity' in window_name:
+        if 'ChatActivity' in window_name: ### NoneType' object is not iterable
             return 'is_group'
         elif 'TroopActivity' in window_name:
             return 'is_grouplist'
@@ -239,7 +239,7 @@ class MonkeyDaemon(object):
             return ''
 
     def goto_window(self,dest):
-        print "------------ goto_window %s " % dest
+        print "------------ goto_window %s" % dest
         current_view = self.get_current_view()
         while( current_view != dest ):
             action = self.path_dict[dest][current_view]
@@ -253,7 +253,7 @@ class MonkeyDaemon(object):
                     self.touchByMonkeyPixel(self.emulator[i])
             else:
                 self.touchByMonkeyPixel(self.emulator[action])
-            sleep(0.5)
+            sleep(1)
             current_view = self.get_current_view()
         return 0
 
@@ -427,7 +427,7 @@ class MonkeyDaemon(object):
         self.groupListUpdating = 1
         if self.touch_to_enter_grouplist() != 0:
             return 1
-        for drag in range(0,15):
+        for drag in range(0,10):
             print "Info : drag for %s time !" % drag
             if drag != 0:
                 try:
@@ -543,20 +543,28 @@ class MonkeyDaemon(object):
 
         if self.touchByMonkeyPixel([self.emulator['width']/2,possibleUILocation]) == 0:
             if self.is_group() == 0:
-                if self.get_group_id() == target_group:
-                    self.currentGroup['groupId'] = target_group
-                    self.currentGroup['groupName'] = target_group_name
-                    return 0
-                else:
-                    print "Info : failed to enter group %s via possibleDrag %s , possibleUILocation %s !" % \
-                            (target_group, possibleDrag, possibleUILocation)            
-                    # 不是这个群，就退出至grouplist界面,然后查找一下当前界面的groups
-                    view = self.get_current_view()
-                    if view == 'is_group' or view == 'is_info':
-                        self.touch_to_enter_grouplist()
-                    if self.find_target_group_from_list(target_group) == 0:
+                for i in range(0,3):
+                    groupId = ''
+                    groupId = self.get_group_id()
+                    if groupId == target_group:
+                        self.currentGroup['groupId'] = target_group
+                        self.currentGroup['groupName'] = target_group_name
                         return 0
-                    return 3
+                    elif groupId != '':
+                        print "Info : get the incorrect groupid %s !" % groupId
+                        break
+                    else:
+                        print "Info : get the empty groupid !"
+                        continue
+                print "Info : failed to enter group %s via possibleDrag %s , possibleUILocation %s !" % \
+                        (target_group, possibleDrag, possibleUILocation)
+                # 不是这个群，就退出至grouplist界面,然后查找一下当前界面的groups
+                view = self.get_current_view()
+                if view == 'is_group' or view == 'is_info':
+                    self.touch_to_enter_grouplist()
+                if self.find_target_group_from_list(target_group) == 0:
+                    return 0
+                return 3
 
     def find_target_group_from_list(self,target_group):
         print '------------ find_target_group_from_list ------------'
@@ -600,11 +608,21 @@ class MonkeyDaemon(object):
             # 0.5s
             if self.touchByMonkeyPixel([self.emulator['width']/2,UILocation]) == 0:
                 if self.is_group() == 0:
-                    if self.get_group_id() == target_group:
-                        self.currentGroup['groupId'] = target_group
-                        self.currentGroup['groupName'] = target_group_name
-                        self.groupList[target_group]['UILocation'] = UILocation
-                        return 0
+                    for i in range(0,3):
+                        groupId = ''
+                        groupId = self.get_group_id()
+                        if groupId == target_group:
+                            self.currentGroup['groupId'] = target_group
+                            self.currentGroup['groupName'] = target_group_name
+                            self.groupList[target_group]['UILocation'] = UILocation
+                            return 0
+                        elif groupId != '':
+                            print "Info : get the incorrect groupid %s !" % groupId
+                            break
+                        else:
+                            print "Info : get the empty groupid !"
+                            continue
+        print "Error : failed to find the target group",target_group
         return -1
 
     def register_monkey(self):
@@ -733,7 +751,13 @@ class MonkeyDaemon(object):
         get_encoded_character(self.qq['deviceid'], msg.decode('utf8'))
         # self.restart_qq_monkey()
         print ">>>send_msg 3 ",time()
-        input_location = By.id('id/input')
+        input_location = None
+        for i in range(0,3):
+            input_location = By.id('id/input')
+            if input_location:
+                break
+            else:
+                continue
         self.easy_device.touch(input_location, self.easy_device.DOWN)
         sleep(0.5)
         self.easy_device.touch(input_location, self.easy_device.UP)
@@ -783,10 +807,10 @@ class MonkeyDaemon(object):
         self.currentGroup['msgs'] = []
         dragCount = 3
         msgs = []
-        is_stop_drag = 0
+        # is_stop_drag = 0
         for msgDrag in range(0, dragCount):
-            if is_stop_drag:
-                break
+            # if is_stop_drag:
+            #     break
             if msgDrag !=0:
                 # self.device.drag((1080/2, 500),(1080/2, 1550),0.1,1)
                 self.drag_to_page_up()
@@ -802,10 +826,10 @@ class MonkeyDaemon(object):
 
             # print 'msgs count : ', len(_msgs)-1 #最后一个为输入框
             # reverse()不可用java.Arraylist
-            # tmpMsgs = []
-            # for m in _msgs:
-                # tmpMsgs.insert(0, m)
+            tmpMsgs = []
             for m in _msgs:
+                tmpMsgs.insert(0, m)
+            for m in tmpMsgs:
                 if 'BaseChatItemLayout' not in str(m):
                     continue
                 item = {}
@@ -839,14 +863,14 @@ class MonkeyDaemon(object):
                 # # if item in self.currentGroup['storedMsgs']:
                 # #     is_stop_drag = 1
                 # #     break
-                store_this_msg = 0
-                for i in self.currentGroup['storedMsgs']:
-                    if i['content'] == item['content'] and i['nickname'] == item['nickname']:
-                        is_stop_drag = 1
-                        store_this_msg = 1
-                        break
-                if store_this_msg == 1:
-                    continue
+                # store_this_msg = 0
+                # for i in self.currentGroup['storedMsgs']:
+                #     if i['content'] == item['content'] and i['nickname'] == item['nickname']:
+                #         is_stop_drag = 1
+                #         store_this_msg = 1
+                #         break
+                # if store_this_msg == 1:
+                #     continue
                 # 未存储，则为新消息.如前一次drag已得到，则跳过.
                 has_this_msg = 0
                 for j in msgs:
