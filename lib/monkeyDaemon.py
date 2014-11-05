@@ -52,7 +52,7 @@ class MonkeyDaemon(object):
             'heartbeat':[200,75],
             'paste':[150,725],
             'leave':[60,70],
-            'input':[150,760],
+            'input':[200,760],
             'send':[430,760],
             'self_msg':'404',
         }
@@ -751,16 +751,11 @@ class MonkeyDaemon(object):
         get_encoded_character(self.qq['deviceid'], msg.decode('utf8'))
         # self.restart_qq_monkey()
         print ">>>send_msg 3 ",time()
-        input_location = None
-        for i in range(0,3):
-            input_location = By.id('id/input')
-            if input_location:
-                break
-            else:
-                continue
-        self.easy_device.touch(input_location, self.easy_device.DOWN)
-        sleep(0.5)
-        self.easy_device.touch(input_location, self.easy_device.UP)
+        # self.easy_device.touch(input_location, self.easy_device.DOWN)
+        self.device.touch(self.emulator['input'][0],self.emulator['input'][1],MonkeyDevice.DOWN)
+        sleep(1)
+        # self.easy_device.touch(input_location, self.easy_device.UP)
+        self.device.touch(self.emulator['input'][0],self.emulator['input'][1],MonkeyDevice.UP)
         self.touchByMonkeyPixel(self.emulator['paste'])
         print ">>>send_msg 4 ",time()
         self.touchByMonkeyPixel(self.emulator['send'])
