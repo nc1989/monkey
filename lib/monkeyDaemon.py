@@ -119,63 +119,44 @@ class MonkeyDaemon(object):
             return -1
 
     def is_home_screen(self):
-        # print '------------ is_home_screen ------------'
-        launcher = None
         try:
-            launcher = self.get_hierarchy_view_by_id('id/launcher')
+            if 'Launcher' in self.get_focus_window_name():
+                return 0
         except:
-            print "Error : failed to parse view id/launcher !"
+            print "Error : failed to get focus window name Launcher !"
+            return 1
 
-        if launcher != None:
-            return 0
-        else:
-            return -1
+    def is_main(self):
+        try:
+            if 'SplashActivity' in self.get_focus_window_name():
+                return 0
+        except:
+            print "Error : failed to get focus window name SplashActivity !"
+            return 1
 
     def is_group(self):
-        # print '------------ is_group ------------'
-        listView1 = None
         try:
-            listView1 = self.get_hierarchy_view_by_id('id/listView1')
+            if 'ChatActivity' in self.get_focus_window_name():
+                return 0
         except:
-            print "Error : failed to parse view id/listView1 !"
-        if listView1:
-            # print "Info : already in the group !"
-            return 0
-        else:
-            # print "Info : I am not in the group !"
-            return -1
+            print "Error : failed to get focus window name ChatActivity !"
+            return 1
 
     def is_info(self):
-        # print '------------ is_info ------------'
-        common_xlistview = None
-        for i in range(0,3):
-            try:
-                common_xlistview = self.get_hierarchy_view_by_id('id/common_xlistview')
-                if common_xlistview:
-                    break
-            except:
-                print "Error : failed to parse view id/common_xlistview !"
-                continue
-        if common_xlistview:
-            # print "Info : already in the info !"
-            return 0
-        else:
-            # print "Info : I am not in the info !"
-            return -1
+        try:
+            if 'ChatSettingForTroop' in self.get_focus_window_name():
+                return 0
+        except:
+            print "Error : failed to get focus window name ChatSettingForTroop !"
+            return 1
 
     def is_grouplist(self):
-        # print '------------ is_grouplist ------------'
-        qb_troop_list_view = None
         try:
-            qb_troop_list_view = self.get_hierarchy_view_by_id('id/qb_troop_list_view')
+            if 'TroopActivity' in self.get_focus_window_name():
+                return 0
         except:
-            print "Error : failed to parse view id/qb_troop_list_view !"
-        if qb_troop_list_view:
-            print "Info : I am already in the grouplist !"
-            return 0
-        else:
-            print "Info : I am not in the grouplist !"
-            return -1
+            print "Error : failed to get focus window name TroopActivity !"
+            return 1
 
     def is_current_group(self):
         # 暂时没有用到，以后单口的时候可能会用到。
@@ -193,44 +174,10 @@ class MonkeyDaemon(object):
         else:
             return 1
 
-    def is_chatlist(self):
-        recent_chat_list = None
-        try:
-            recent_chat_list = self.get_hierarchy_view_by_id('id/recent_chat_list')
-        except:
-            print "Error : failed to parse view id/recent_chat_list !"
-        if recent_chat_list:
-            return 0
-        else:
-            return -1
-
     ### basic check steps ###
 
 
     ### basic monkey operations ###
-
-    def get_current_view(self):
-        try:
-            hViewer = self.device.getHierarchyViewer()
-            if hViewer.findViewById('id/listView1'):
-                print "Info : I am in the view is_group !"
-                return 'is_group'
-            elif hViewer.findViewById('id/qb_troop_list_view'):
-                print "Info : I am in the view is_grouplist !"
-                return 'is_grouplist'
-            elif hViewer.findViewById('id/elv_buddies'):
-                print "Info : I am in the view is_contacts !"
-                return 'is_contacts'
-            elif hViewer.findViewById('id/common_xlistview'):
-                print "Info : I am in the view is_info !"
-                return 'is_info'
-            elif hViewer.findViewById('id/recent_chat_list'):
-                print "Info : I am in the view is_chatlist !"
-                return 'is_chatlist'
-            else:
-                return ''
-        except:
-            return ''
 
     def get_hierarchy_view_by_id(self,id):
         try:
@@ -238,8 +185,32 @@ class MonkeyDaemon(object):
             view = hViewer.findViewById(id)
             return view
         except:
-            # print "Error : failed to get hierarchy view by id %s !" % id
             return None
+
+    def get_focus_window_name(self):
+        try:
+            hViewer = self.device.getHierarchyViewer()
+            window_name = hViewer.focusedWindowName
+            return window_name
+        except:
+            return ''
+
+    def get_current_view(self):
+        window_name = self.get_focus_window_name()
+        if 'ChatActivity' in window_name:
+            print "Info : I am in the view is_group !"
+            return 'is_group'
+        elif 'TroopActivity' in window_name:
+            print "Info : I am in the view is_grouplist !"
+            return 'is_grouplist'
+        elif 'SplashActivity' in window_name:
+            print "Info : I am in the view is_main !"
+            return 'is_main'
+        elif 'ChatSettingForTroop' in window_name:
+            print "Info : I am in the view is_info !"
+            return 'is_info'
+        else:
+            return ''
 
     # decorator to wait screen
     def touch_wait_screen(func):
@@ -293,7 +264,7 @@ class MonkeyDaemon(object):
         # 先回到chatlist或contacts        
         print '------------ touch_to_enter_main -------------'
         view = self.get_current_view()
-        if view == 'is_chatlist' or view == 'is_contacts':
+        if view == 'is_main':
             print "Info : I am in the main view %s !" % view
         elif view == "is_grouplist":
             self.touch_to_leave()
@@ -333,7 +304,7 @@ class MonkeyDaemon(object):
 
     # @touch_wait_screen
     def touch_to_enter_msgs(self):
-        # 不把is_chatlist()放这里边，是为了单独处理QQ restart闪退情况。
+        # 不把is_main()放这里边，是为了单独处理QQ restart闪退情况。
         print '------------ touch_to_enter_msgs -------------'
         if self.touchByMonkeyPixel(self.emulator['msgs'][0],self.emulator['msgs'][1]) == 0:
             return self.touchByMonkeyPixel(self.emulator['msgs'][0],self.emulator['msgs'][1])
@@ -343,7 +314,7 @@ class MonkeyDaemon(object):
 
     # @touch_wait_screen
     def touch_to_enter_contacts(self):
-        # 不把is_chatlist()判断放在里边，是为了单独处理QQ restart闪退情况。
+        # 不把is_main()判断放在里边，是为了单独处理QQ restart闪退情况。
         print '------------ touch_to_enter_contacts -------------'
         if self.touchByMonkeyPixel(self.emulator['contacts'][0],self.emulator['contacts'][1]) == 0:
             return self.touchByMonkeyPixel(self.emulator['contacts'][0],self.emulator['contacts'][1])
@@ -405,7 +376,7 @@ class MonkeyDaemon(object):
             self.touchByMonkeyPixel(self.emulator['qqStart'][0],self.emulator['qqStart'][1])
             sleep(3)
             # 一开始启动，QQ闪退的情况
-            if self.is_chatlist() == 0:
+            if self.is_main() == 0:
                 self.touch_to_enter_contacts()
             # 点击联系人，QQ闪退的情况
             sleep(2)
