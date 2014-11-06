@@ -291,7 +291,6 @@ class MonkeyDaemon(object):
 
     # @touch_wait_screen
     def touch_to_leave(self):
-        print '------------ touch_to_leave -------------'
         try:
             self.touchByMonkeyPixel(self.emulator['leave'])
             return 0
@@ -530,6 +529,55 @@ class MonkeyDaemon(object):
         print "Info : get this group id : %s !" % groupId
         if self.touch_to_enter_group() == 0:
             return groupId
+
+    def get_group_members(self):
+        group_members = []
+        is_stop_drag = 0
+        last_member = None
+        while True:
+            screen_members = self.extract_group_members()
+            if last_member == screen_members[-1]:
+                break
+            last_member = screen_members[-1]
+            group_members.extend(screen_members)
+            self.drag_to_page_down()
+        print "Info : group_members:",group_members            
+        return group_members
+
+    def extract_group_members(self):
+        screen_members = []       
+        content = self.get_hierarchy_view_by_id('id/content')
+        members_list = content.children[0].children[1].children[0].children
+        list_top = 113
+        for member in members_list:
+            if member.height != 79:
+                list_top += member.height
+                # 为管理员（4人），C(2人)之类的字样。72 / 33
+                continue
+            member_location = list_top + 79/2
+            if member_location >= 800:
+                continue
+            self.touchByMonkeyPixel([240,member_location])
+            list_top += 79
+            qqid = self.get_member_id()
+            if qqid in screen_members:
+                continue
+            screen_members.append(qqid)
+        return screen_members
+
+    def get_member_id(self):
+        qqid = ''
+        content = self.get_hierarchy_view_by_id('id/content')
+        tmpqqid = ''
+        try:
+            tmpqqid = content.children[0].children[0].children[1].children[2].children[1].namedProperties.get('text:mText').value.encode('utf8')
+        except:
+            return ''
+        qqid = tmpqqid.split(' ')[0]
+        print "Info : get the member id %s !" % qqid
+        self.touch_to_leave()
+        sleep(1)
+        return qqid
 
     def check_group_by_possible_location(self,target_group):
         target_group_name = self.groupList[target_group]['groupName']

@@ -29,33 +29,33 @@
         "port":"8062",
         "device":"S4",
         "deviceid":"emulator-5562"
-    },    
+    },
     "3083207001": {
         "qqId":"3083207001",
-        "port":"8054",
+        "port":"8064",
         "device":"S5",
-        "deviceid":"emulator-5554"
+        "deviceid":"emulator-5564"
     },
-    "123": {
-        "qqId":"3083207001",
+    "252709415": {
+        "qqId":"252709415",
         "port":"8066",
         "device":"S6",
         "deviceid":"emulator-5566"
     },
-    "123": {
-        "qqId":"3083207001",
+    "2741625079": {
+        "qqId":"2741625079",
         "port":"8068",
         "device":"S7",
         "deviceid":"emulator-5568"
     },
-    "123": {
-        "qqId":"3083207001",
+    "3047289506": {
+        "qqId":"3047289506",
         "port":"8070",
         "device":"S8",
         "deviceid":"emulator-5570"
     },
-    "123": {
-        "qqId":"3083207001",
+    "2971248806": {
+        "qqId":"2971248806",
         "port":"8072",
         "device":"S9",
         "deviceid":"emulator-5572"
