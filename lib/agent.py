@@ -6,6 +6,16 @@ from com.android.chimpchat.hierarchyviewer import HierarchyViewer
 import time
 import os
 import sys
+import logging
+LOG_FORMAT= '%(asctime)s %(levelname)-6s> %(message)s'
+logging.basicConfig(datefmt='%m-%d %H:%M', level=logging.DEBUG,
+    format=LOG_FORMAT, filename='agent.log', encoding='utf8', filemode='w')
+logger = logging.getLogger('Agent')
+
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+console.setFormatter(logging.Formatter(LOG_FORMAT, datefmt='%m-%d %H:%M'))
+logging.getLogger('Agent').addHandler(console)
 
 jython_lib = '/usr/local/Cellar/jython/2.5.3/libexec/Lib'
 sys.path.append("%s/site-packages/simplejson-3.6.3-py2.5.egg" % jython_lib)
@@ -85,10 +95,6 @@ SCREEN_SWITCH_ACTION = {
 }
 
 
-def Print(msg):
-    print "%s> %s" % (time.strftime("%m-%d %H:%M:%S", time.localtime()), msg)
-
-
 def get_view_text(view):
     return view.namedProperties.get('text:mText').value.encode('utf8')
 
@@ -123,29 +129,48 @@ class Agent(object):
         for i in xrange(15):
             if i != 0:
                 self.drag(1)
-            troop_list = self.get_view_by_id('id/qb_troop_list_view')
-            if troop_list is None:
-                continue
-            positions = self.extract_groups(troop_list.children)
+            positions = self.extract_groups()
             for name, pos in positions:
-                Print("enter: %s" % name)
+                logger.info("enter: %s", name)
                 self.touch_pixel(HORIZON_MID, pos)
                 time.sleep(0.5)
                 self.goto('GROUP_LIST')
-                Print("----------------------")
 
-    def extract_groups(self, group_view_list):
+    def extract_groups(self):
+        troop_list = self.retry_get_view_by_id('id/qb_troop_list_view')
+        if troop_list is None:
+            logger.error("提取群列表元素失败，已重试!")
+            return []
         ret = []
-        for gv in group_view_list:
-            if get_view_text(gv.children[0]):
+        for gv in troop_list.children:
+            if get_view_text(gv.children[0]):  # 排除我创建的群这样的元素
                 continue
             name = get_view_text(gv.children[1].children[2].children[1])
             pos = gv.top + gv.height / 2 + 182
             if pos <= 185:
-                Print("DANGER POS: %s" % pos)
+                logging.info("DANGER POS: %s", pos)
                 continue
             ret.append((name, pos))
         return ret
+
+    def extract_group_info(self):
+        #调用这个函数时，需要已经位于群信息界面
+        xlist = self.retry_get_view_by_id('id/common_xlistview')
+        if not xlist:
+            logger.error("提取群消息失败，已重试!")
+            return None, None
+        nameAndId = xlist.children[0].children[2].children[0].children[1]
+        name = get_view_text(nameAndId.children[0])
+        groupId = get_view_text(nameAndId.children[1].children[0])
+        return name, groupId
+
+    def retry_get_view_by_id(self, id):
+        for i in xrange(3):
+            ret = self.get_view_by_id(id)
+            if ret:
+                return ret
+            logger.warning("get view[%s] failed!", id)
+        return None
 
     def get_view_by_id(self, id):
         try:
@@ -176,7 +201,7 @@ class Agent(object):
             return 'CONTACTS'
 
     def touch_pixel(self, x, y):
-        Print('Touch: %s,%s' % (x, y))
+        logger.debug('Touch: %s,%s', x, y)
         self.device.touch(x, y, 'DOWN_AND_UP')
 
     def touch_button(self, name):
@@ -199,8 +224,12 @@ class Agent(object):
             time.sleep(0.5)
 
     def check_group(self, gid):
-        #gname = self.groups[gid]
-        return True
+        #在GROUP_CHAT界面时，用来检测群号是否是gid
+        if not self.goto('GROUP_INFO'):
+            return False
+        group_name, group_id = self.extract_group_info()
+        self.goto('GROUP_CHAT')
+        return group_id == gid
 
     def enter_group_by_postion(self, gid):
         group = self.groups[gid]
@@ -212,9 +241,12 @@ class Agent(object):
         return self.check_group(gid)
 
     def enter_group_by_finding(self, gid):
-        return True
+        return False
 
     def enter_group(self, gid):
+        if gid not in self.groups:
+            logger.error("can not enter a unknown group!")
+            return False  # 暂时不接受进入无记录群的需求
         if not self.goto('CONTACTS'):
             return False
         if not self.goto('GROUP_LIST'):
@@ -227,19 +259,19 @@ class Agent(object):
     def wait_screen(self, old_screen, expect_screen):
         # 等待模拟器跳转到某个页面
         # 如果超过10s没到指定页面或者跳转到了错误页面，返回False
-        Print('Screen switch from %s to %s' % (old_screen, expect_screen))
+        logger.info('Screen switch from %s to %s', old_screen, expect_screen)
         for i in xrange(50):
             cs = self.current_screen()
             if expect_screen == cs:
-                Print('Screen switch success!')
+                logger.info('Screen switch success!')
                 return True
             elif cs != old_screen:
                 # 没有跳转到特定页面不是由于卡顿造成的
                 # 而是跳转到了某个不认识的页面
-                Print('Screen switch failed!')
+                logger.error('Screen switch failed!')
                 return False
             time.sleep(0.2)
-        Print('Screen switch timeout!')
+        logger.error('Screen switch timeout!')
         return False
 
     def do_action(self, action, gid):
@@ -255,15 +287,15 @@ class Agent(object):
             method(gid)
 
     def goto(self, screen, gid=None):
-        Print('goto: %s' % screen)
+        logger.info('goto: %s', screen)
         for i in xrange(8):
             cs = self.current_screen()
-            Print("current screen: %s" % cs)
+            logger.info("current screen: %s", cs)
             if cs == screen:
-                Print("进入指定页面: %s" % cs)
+                logger.info("进入指定页面: %s", cs)
                 return True
             action, except_screen = SCREEN_SWITCH_ACTION[screen][cs]
-            Print("do_action: %s" % action)
+            logger.info("do_action: %s", action)
             self.do_action(action, gid)
             if not self.wait_screen(cs, except_screen):
                 return False
