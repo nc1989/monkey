@@ -14,18 +14,20 @@ sys.path.append('/Users/zhaoqifa/tools/jython2.5.3/Lib/site-packages/simplejson-
 
 import time
 import logging
-LOG_FORMAT= '%(asctime)s %(levelname)-6s> %(message)s'
-logging.basicConfig(datefmt='%m-%d %H:%M', level=logging.DEBUG,
-    format=LOG_FORMAT, filename='agent.log', encoding='utf8', filemode='w')
+LOG_FORMAT = '%(asctime)s %(levelname)-6s> %(message)s'
+logging.basicConfig(datefmt='%m-%d %H:%M:%S', level=logging.DEBUG,
+                    format=LOG_FORMAT, filename='agent.log',
+                    encoding='utf8', filemode='w')
 logger = logging.getLogger('Agent')
 
 console = logging.StreamHandler()
 console.setLevel(logging.INFO)
-console.setFormatter(logging.Formatter(LOG_FORMAT, datefmt='%m-%d %H:%M'))
+console.setFormatter(logging.Formatter(LOG_FORMAT, datefmt='%m-%d %H:%M:%S'))
 logging.getLogger('Agent').addHandler(console)
 
 import simplejson as json
 from utils import get_encoded_character
+from lib.tools import str_equal, to_unicode, to_str
 
 BUTTON_LOCATION = {
     'LEFT_UP': (60, 70),
@@ -41,8 +43,9 @@ BUTTON_LOCATION = {
 
     'QQ_NAME': (40, 75),
     'QQ_START': (50, 750),
-    'INPUT': (200, 760),
-    'PASTE': (150, 725),
+    'INPUT': (165, 760),
+    'INPUT_END': (370, 780),
+    'PASTE': (165, 725),
     'SEND': (430, 760),
 }
 
@@ -133,8 +136,10 @@ class Agent(object):
     def __init__(self, qq, device_id):
         self.qq = qq
         self.device_id = device_id
+        logger.info('connect to adb device')
         self.device = MonkeyRunner.waitForConnection(5, device_id)
-        self.easy_device = EasyMonkeyDevice(self.device)
+        logger.info('connect to adb device done')
+        #self.easy_device = EasyMonkeyDevice(self.device)
         self.groups = {}
         self.load_groups()
 
@@ -172,7 +177,7 @@ class Agent(object):
             name = get_view_text(gv.children[1].children[2].children[1])
             pos = gv.top + gv.height / 2 + 182
             if pos <= 185:
-                logging.info("DANGER POS: %s", pos)
+                logger.info("DANGER POS: %s", pos)
                 continue
             ret.append((name, pos))
         return ret
@@ -202,7 +207,7 @@ class Agent(object):
         return group_members
 
     def extract_group_members(self):
-        screen_members = []       
+        screen_members = []
         content = self.get_view_by_id('id/content')
         members_list = content.children[0].children[1].children[0].children
         list_top = 113
@@ -211,10 +216,11 @@ class Agent(object):
                 list_top += member.height
                 # 为管理员（4人），C(2人)之类的字样。72 / 33
                 continue
-            member_location = list_top + 79/2
+            member_location = list_top + 79 / 2
             if member_location >= 800:
                 continue
-            self.switch_by_pixel('GROUP_MEMBER','GROUP_MEMBER_INFO',HORIZON_MID,member_location)
+            self.switch_by_pixel('GROUP_MEMBER', 'GROUP_MEMBER_INFO',
+                                 HORIZON_MID, member_location)
             list_top += 79
             qqid = self.get_member_id()
             if qqid in screen_members:
@@ -226,7 +232,9 @@ class Agent(object):
         content = self.get_view_by_id('id/content')
         tmpqqid = ''
         try:
-            tmpqqid = content.children[0].children[0].children[1].children[2].children[1].namedProperties.get('text:mText').value.encode('utf8')
+            _view = content.children[0].children[0].\
+                children[1].children[2].children[1]
+            tmpqqid = get_view_text(_view)
         except:
             return ''
         qqid = tmpqqid.split(' ')[0]
@@ -239,7 +247,6 @@ class Agent(object):
             ret = self.get_view_by_id(id)
             if ret:
                 return ret
-            logger.warning("get view[%s] failed!", id)
         return None
 
     def get_view_by_id(self, id):
@@ -248,7 +255,14 @@ class Agent(object):
             view = hViewer.findViewById(id)
             return view
         except:
+            logger.warning('get view by id[%s] failed!', id)
             return None
+
+    def get_view_text_by_id(self, id):
+        view = self.get_view_by_id(id)
+        if not view:
+            return None
+        return get_view_text(view)
 
     def current_activity(self):
         for i in xrange(50):
@@ -274,7 +288,7 @@ class Agent(object):
         logger.debug('Touch: %s,%s', x, y)
         self.device.touch(x, y, MonkeyDevice.DOWN_AND_UP)
 
-    def long_touch_pixel(self, x, y, t=1):
+    def long_touch_pixel(self, x, y, t=1.5):
         self.device.touch(x, y, MonkeyDevice.DOWN)
         time.sleep(t)
         self.device.touch(x, y, MonkeyDevice.UP)
@@ -284,7 +298,7 @@ class Agent(object):
 
     def switch_by_pixel(self, cs, es, x, y):
         self.touch_pixel(x, y)
-        return self.wait_screen(cs, es)
+        return self.watch_screen_switch(cs, es)
 
     def drag_one_screen(self, down):
         if down:
@@ -298,15 +312,46 @@ class Agent(object):
             self.drag_one_screen(down)
             time.sleep(0.5)
 
-    def send_msg(self, msg):
-        get_encoded_character(self.device_id, msg.decode('utf8'))
+    def send_group_msg(self, msg, validate=True):
+        logger.info('send msg: %s', to_str(msg))
+        get_encoded_character(self.device_id, to_unicode(msg))
+        self.wait_screen('GROUP_CHAT')
+        logger.debug('send_group_msg copy character done')
+
+        if not validate:
+            #如果发消息前不验证，那么先删除一下消息发送框的中原有内容
+            self.delete_msg(20)
+
         self.long_touch_pixel(*BUTTON_LOCATION['INPUT'])
         time.sleep(0.2)
         self.touch_pixel(*BUTTON_LOCATION['PASTE'])
-        time.sleep(1)
+        logger.debug('send_group_msg click PASTE done')
+
+        if validate:
+            #验证消息
+            logger.debug('validate msg begin')
+            msg_to_send = self.get_view_text_by_id('id/input')
+            if not str_equal(msg_to_send, msg):
+                logger.error("要发送的消息[%s]和输入框中的消息[%s]不一致",
+                             to_str(msg), to_str(msg_to_send))
+                if msg_to_send:  # 消息没发送要把残留的消息删掉
+                    self.delete_msg(len(msg_to_send))
+                return False
+            logger.debug('validate msg done')
+
         self.touch_pixel(*BUTTON_LOCATION['SEND'])
         return True
 
+    def delete_msg(self, length):
+        logger.info('delete msg, length: %s', length)
+        self.touch_button('INPUT_END')
+        time.sleep(0.2)
+        for i in xrange(length + 2):   # 多删两次
+            self.device.press('KEYCODE_DEL')
+
+    def get_msg(self, target=None):
+        # 在'GROUP_CHAT'界面获取消息
+        pass
     def check_group(self, gid):
         #在GROUP_CHAT界面时，用来检测群号是否是gid
         if not self.goto('GROUP_INFO'):
@@ -340,22 +385,36 @@ class Agent(object):
             return True
         return self.enter_group_by_finding(gid)
 
-    def wait_screen(self, old_screen, expect_screen):
+    def wait_screen(self, expect_screen):
         # 等待模拟器跳转到某个页面
-        # 如果超过10s没到指定页面或者跳转到了错误页面，返回False
-        logger.info('Screen switch from %s to %s', old_screen, expect_screen)
+        # 如果超过10s没到指定页面，返回False
+        logger.info('wait screen: %s', expect_screen)
         for i in xrange(50):
             cs = self.current_screen()
             if expect_screen == cs:
-                logger.info('Screen switch success!')
+                logger.info('screen switch success!')
+                return True
+            time.sleep(0.2)
+        logger.error('screen switch timeout!')
+        return False
+
+    def watch_screen_switch(self, old_screen, expect_screen):
+        # 等待模拟器跳转到某个页面
+        # 如果超过10s没到指定页面或者跳转到了错误页面，返回False
+        logger.info('watch screen switch from %s to %s',
+                    old_screen, expect_screen)
+        for i in xrange(50):
+            cs = self.current_screen()
+            if expect_screen == cs:
+                logger.info('screen switch success!')
                 return True
             elif cs != old_screen:
                 # 没有跳转到特定页面不是由于卡顿造成的
                 # 而是跳转到了某个不认识的页面
-                logger.error('Screen switch failed!')
+                logger.error('screen switch failed!')
                 return False
             time.sleep(0.2)
-        logger.error('Screen switch timeout!')
+        logger.error('screen switch timeout!')
         return False
 
     def do_action(self, action, gid):
@@ -381,7 +440,7 @@ class Agent(object):
             action, except_screen = SCREEN_SWITCH_ACTION[screen][cs]
             logger.info("do_action: %s", action)
             self.do_action(action, gid)
-            if not self.wait_screen(cs, except_screen):
+            if not self.watch_screen_switch(cs, except_screen):
                 return False
         return False
 
@@ -396,5 +455,5 @@ if __name__ == "__main__":
     #print agent.goto_device_home()
     #agent.gen_groups()
     #print agent.enter_group("301430156")
-    print agent.send_msg("123123123")
-    print agent.send_msg("天命，哈哈哈")
+    for i in xrange(50):
+        print agent.send_group_msg("天命，哈哈哈%s" % i, False)

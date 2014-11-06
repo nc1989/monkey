@@ -28,3 +28,20 @@ def get_local_ip():
     ip_addr = s.getsockname()[0]
     s.close()
     return ip_addr
+
+def str_equal(s1, s2):
+    if isinstance(s1, unicode):
+        s1 = s1.encode('utf8')
+    if isinstance(s2, unicode):
+        s2 = s2.encode('utf8')
+    return s1 == s2
+
+def to_unicode(s):
+    if isinstance(s, unicode):
+        return s
+    return s.decode('utf8')
+
+def to_str(s):
+    if isinstance(s, unicode):
+        return s.encode('utf8')
+    return s
