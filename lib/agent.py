@@ -21,6 +21,7 @@ jython_lib = '/usr/local/Cellar/jython/2.5.3/libexec/Lib'
 sys.path.append("%s/site-packages/simplejson-3.6.3-py2.5.egg" % jython_lib)
 sys.path.append('/Users/zhaoqifa/tools/jython2.5.3/Lib/site-packages/simplejson-3.6.5-py2.5.egg/')
 import simplejson as json
+from utils import get_encoded_character
 
 BUTTON_LOCATION = {
     'LEFT_UP': (60, 70),
@@ -36,6 +37,9 @@ BUTTON_LOCATION = {
 
     'QQ_NAME': (40, 75),
     'QQ_START': (50, 750),
+    'INPUT': (200, 760),
+    'PASTER': (150, 725),
+    'SEND': (430, 760),
 }
 
 HORIZON_MID = 240
@@ -49,6 +53,7 @@ SCREENS = {
     'ChatActivity': 'GROUP_CHAT',
     'ChatSettingForTroop': 'GROUP_INFO',
     'TroopMemberListActivity': 'GROUP_MEMBER',
+    'TroopMemberCardActivity': 'GROUP_MEMBER_INFO',
 }
 
 SCREEN_SWITCH_ACTION = {
@@ -59,6 +64,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_CHAT': ('LEFT_UP', 'GROUP_LIST'),
         'GROUP_INFO': ('LEFT_UP', 'GROUP_CHAT'),
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
+        'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
     },
     'CONTACTS': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -67,6 +73,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_CHAT': ('LEFT_UP', 'GROUP_LIST'),
         'GROUP_INFO': ('LEFT_UP', 'GROUP_CHAT'),
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
+        'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
     },
     'GROUP_LIST': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -75,6 +82,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_CHAT': ('LEFT_UP', 'GROUP_LIST'),
         'GROUP_INFO': ('LEFT_UP', 'GROUP_CHAT'),
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
+        'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
     },
     'GROUP_CHAT': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -83,6 +91,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_CHAT': None,
         'GROUP_INFO': ('LEFT_UP', 'GROUP_CHAT'),
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
+        'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
     },
     'GROUP_INFO': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -91,6 +100,16 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_CHAT': ('RIGHT_UP', 'GROUP_INFO'),
         'GROUP_INFO': None,
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
+        'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
+    },
+    'GROUP_MEMBER': {
+        'MESSAGES': ('MID_DOWN', 'CONTACTS'),
+        'CONTACTS': ('GROUPS', 'GROUP_LIST'),
+        'GROUP_LIST': ('enter_group', 'GROUP_CHAT'),
+        'GROUP_CHAT': ('RIGHT_UP', 'GROUP_INFO'),
+        'GROUP_INFO': ('RIGHT_UP', 'GROUP_MEMBER'),
+        'GROUP_MEMBER': None,
+        'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
     },
 }
 
@@ -109,6 +128,7 @@ class Group(object):
 class Agent(object):
     def __init__(self, qq, device_id):
         self.qq = qq
+        self.device_id = device_id
         self.device = MonkeyRunner.waitForConnection(5, device_id)
         self.easy_device = EasyMonkeyDevice(self.device)
         self.groups = {}
@@ -222,6 +242,10 @@ class Agent(object):
         for i in xrange(abs(pos)):
             self.drag_one_screen(down)
             time.sleep(0.5)
+
+    def send_msg(self, msg):
+        get_encoded_character(self.device_id, msg.decode('utf8'))
+        pass
 
     def check_group(self, gid):
         #在GROUP_CHAT界面时，用来检测群号是否是gid
