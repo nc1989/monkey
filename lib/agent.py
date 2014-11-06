@@ -188,6 +188,52 @@ class Agent(object):
         groupId = get_view_text(nameAndId.children[1].children[0])
         return name, groupId
 
+    def gen_group_members(self):
+        self.goto('GROUP_MEMBER')
+        group_members = []
+        last_member = None
+        while True:
+            screen_members = self.extract_group_members()
+            if last_member == screen_members[-1]:
+                break
+            last_member = screen_members[-1]
+            group_members.extend(screen_members)
+            self.drag(1)
+        return group_members
+
+    def extract_group_members(self):
+        screen_members = []       
+        content = self.get_view_by_id('id/content')
+        members_list = content.children[0].children[1].children[0].children
+        list_top = 113
+        for member in members_list:
+            if member.height != 79:
+                list_top += member.height
+                # 为管理员（4人），C(2人)之类的字样。72 / 33
+                continue
+            member_location = list_top + 79/2
+            if member_location >= 800:
+                continue
+            self.switch_by_pixel('GROUP_MEMBER','GROUP_MEMBER_INFO',HORIZON_MID,member_location)
+            list_top += 79
+            qqid = self.get_member_id()
+            if qqid in screen_members:
+                continue
+            screen_members.append(qqid)
+        return screen_members
+
+    def get_member_id(self):
+        content = self.get_view_by_id('id/content')
+        tmpqqid = ''
+        try:
+            tmpqqid = content.children[0].children[0].children[1].children[2].children[1].namedProperties.get('text:mText').value.encode('utf8')
+        except:
+            return ''
+        qqid = tmpqqid.split(' ')[0]
+        print "Info : get the member id %s !" % qqid
+        self.goto('GROUP_MEMBER')
+        return qqid
+
     def retry_get_view_by_id(self, id):
         for i in xrange(3):
             ret = self.get_view_by_id(id)
