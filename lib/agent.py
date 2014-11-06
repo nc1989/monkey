@@ -3,9 +3,16 @@
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 from com.android.monkeyrunner.easy import EasyMonkeyDevice, By
 from com.android.chimpchat.hierarchyviewer import HierarchyViewer
-import time
 import os
 import sys
+PWD = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.abspath(os.path.join(PWD, "../")))
+jython_lib = '/usr/local/Cellar/jython/2.5.3/libexec/Lib'
+sys.path.append("%s/site-packages/simplejson-3.6.3-py2.5.egg" % jython_lib)
+sys.path.append('/Users/zhaoqifa/tools/jython2.5.3/Lib/site-packages/simplejson-3.6.5-py2.5.egg/')
+
+
+import time
 import logging
 LOG_FORMAT= '%(asctime)s %(levelname)-6s> %(message)s'
 logging.basicConfig(datefmt='%m-%d %H:%M', level=logging.DEBUG,
@@ -17,9 +24,6 @@ console.setLevel(logging.INFO)
 console.setFormatter(logging.Formatter(LOG_FORMAT, datefmt='%m-%d %H:%M'))
 logging.getLogger('Agent').addHandler(console)
 
-jython_lib = '/usr/local/Cellar/jython/2.5.3/libexec/Lib'
-sys.path.append("%s/site-packages/simplejson-3.6.3-py2.5.egg" % jython_lib)
-sys.path.append('/Users/zhaoqifa/tools/jython2.5.3/Lib/site-packages/simplejson-3.6.5-py2.5.egg/')
 import simplejson as json
 from utils import get_encoded_character
 
@@ -38,7 +42,7 @@ BUTTON_LOCATION = {
     'QQ_NAME': (40, 75),
     'QQ_START': (50, 750),
     'INPUT': (200, 760),
-    'PASTER': (150, 725),
+    'PASTE': (150, 725),
     'SEND': (430, 760),
 }
 
@@ -222,7 +226,12 @@ class Agent(object):
 
     def touch_pixel(self, x, y):
         logger.debug('Touch: %s,%s', x, y)
-        self.device.touch(x, y, 'DOWN_AND_UP')
+        self.device.touch(x, y, MonkeyDevice.DOWN_AND_UP)
+
+    def long_touch_pixel(self, x, y, t=1):
+        self.device.touch(x, y, MonkeyDevice.DOWN)
+        time.sleep(t)
+        self.device.touch(x, y, MonkeyDevice.UP)
 
     def touch_button(self, name):
         self.touch_pixel(*BUTTON_LOCATION[name])
@@ -245,7 +254,12 @@ class Agent(object):
 
     def send_msg(self, msg):
         get_encoded_character(self.device_id, msg.decode('utf8'))
-        pass
+        self.long_touch_pixel(*BUTTON_LOCATION['INPUT'])
+        time.sleep(0.2)
+        self.touch_pixel(*BUTTON_LOCATION['PASTE'])
+        time.sleep(1)
+        self.touch_pixel(*BUTTON_LOCATION['SEND'])
+        return True
 
     def check_group(self, gid):
         #在GROUP_CHAT界面时，用来检测群号是否是gid
@@ -326,7 +340,7 @@ class Agent(object):
         return False
 
     def goto_device_home(self):
-        self.device.press('KEYCODE_HOME', 'DOWN_AND_UP', '')
+        self.device.press('KEYCODE_HOME', MonkeyDevice.DOWN_AND_UP, '')
 
 
 if __name__ == "__main__":
@@ -335,4 +349,6 @@ if __name__ == "__main__":
     #print agent.goto('CONTACTS')
     #print agent.goto_device_home()
     #agent.gen_groups()
-    print agent.enter_group("301430156")
+    #print agent.enter_group("301430156")
+    print agent.send_msg("123123123")
+    print agent.send_msg("天命，哈哈哈")
