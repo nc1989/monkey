@@ -54,10 +54,13 @@ def net_command():
         ret = -1, "command not found!" % cmd
     response.content_type = 'application/json'
     if isinstance(ret, int):
+        #返回int表示状态码
         r = {"status": ret}
     elif isinstance(ret, (list, dict)):
-        r = ret
+        #返回list或者dict，表示成功，list和dict是返回的data
+        r = {"status": 0, "data": ret}
     elif isinstance(ret, tuple):
+        #返回tuple表示状态码和错误信息
         r = {"status": ret[0], "err_msg": ret[1]}
     else:
         r = {"status": 1, "error_msg": "Unknow error!"}
@@ -102,6 +105,26 @@ class Robot(object):
     def register(self):
         command_url = "http://%s:%s/net_command" % (self.local_ip, self.port)
         pass
+
+    # 以下是暴露给net_command的API
+    def enter_group(self, data):
+        gid = data.get('group', None)
+        if not gid:
+            return -1, "group not found"
+        return self.agent.enter_group(gid)
+
+    def send_group_msg(self, data):
+        group = data.get('group', None)
+        msg = data.get('msg', None)
+        if not (group and msg):
+            return -1, "group or msg is None"
+        return self.agent.send_group_msg(msg)
+
+    def check_group_msg(self, data):
+        msg =  data.get('msg', None)
+        if not msg:
+            return -1, "msg is None"
+        return self.agent.check_group_msg(msg)
 
 
 if __name__ == '__main__':

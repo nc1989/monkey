@@ -372,11 +372,11 @@ class Agent(object):
                              to_str(msg), to_str(msg_to_send))
                 if msg_to_send:  # 消息没发送要把残留的消息删掉
                     self.delete_msg(len(msg_to_send))
-                return False
+                return 1
             logger.debug('validate msg done')
 
         self.touch_pixel(*BUTTON_LOCATION['SEND'])
-        return True
+        return 0
 
     def delete_msg(self, length):
         logger.info('delete msg, length: %s', length)
@@ -397,9 +397,9 @@ class Agent(object):
                 logger.info("群消息[%s]来自[%s]", to_str(msg), to_str(sender))
                 if str_equal(msg, target):
                     logger.info("target msg[%s] found", to_str(target))
-                    return True
+                    return {"drag": i, "sender": sender}
         logger.info("target msg[%s] not found in 3 screens", to_str(target))
-        return False
+        return 1
 
     def get_group_name_id(self):
         #在GROUP_CHAT界面时，获取group name和id
