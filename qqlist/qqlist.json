@@ -2,61 +2,73 @@
     "ip":"10.128.38.132",
     "server": "192.168.217.191",
     "2902424837": {
+        "nickname":"橙色的勺子",
         "port":8054,
         "device":"Nexus-S",
         "deviceid":"emulator-5554"
     },
     "2195356784": {
+        "nickname":"Coffee的粉丝",
         "port":8056,
         "device":"S1",
         "deviceid":"emulator-5556"
     },
     "3040493963": {
+        "nickname":"不辣de皮特",
         "port":8058,
         "device":"S2",
         "deviceid":"emulator-5558"
     },
     "3067487368": {
+        "nickname":"Don't ask me!",
         "port":8060,
         "device":"S3",
         "deviceid":"emulator-5560"
     },
     "2901490931": {
+        "nickname":"貂小婵",
         "port":8062,
         "device":"S4",
         "deviceid":"emulator-5562"
     },
     "3083207001": {
+        "nickname":"逆袭的码农",
         "port":8064,
         "device":"S5",
         "deviceid":"emulator-5564"
     },
     "252709415": {
+        "nickname":"赖景琳",
         "port":8066,
         "device":"S6",
         "deviceid":"emulator-5566"
     },
     "2741625079": {
+        "nickname":"小柠檬",
         "port":8068,
         "device":"S7",
         "deviceid":"emulator-5568"
     },
     "3047289506": {
+        "nickname":"白白酱",
         "port":8070,
         "device":"S8",
         "deviceid":"emulator-5570"
     },
     "2971248806": {
+        "nickname":"奔跑滴CC",
         "port":8072,
         "device":"S9",
         "deviceid":"emulator-5572"
     },
     "123": {
+        "nickname":"",
         "port":8074,
         "device":"S10",
         "deviceid":"emulator-5574"
     },
     "123": {
+        "nickname":"",
         "port":8076,
         "device":"S11",
         "deviceid":"emulator-5576"
