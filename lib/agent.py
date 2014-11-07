@@ -14,7 +14,7 @@ sys.path.append('/Users/zhaoqifa/tools/jython2.5.3/Lib/site-packages/simplejson-
 
 import time
 import logging
-LOG_FORMAT = '%(asctime)s %(levelname)-6s> %(message)s'
+LOG_FORMAT = '%(asctime)s %(name)-5s %(levelname)-6s> %(message)s'
 logging.basicConfig(datefmt='%m-%d %H:%M:%S', level=logging.DEBUG,
                     format=LOG_FORMAT, filename='agent.log',
                     encoding='utf8', filemode='w')
