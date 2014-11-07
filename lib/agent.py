@@ -429,19 +429,19 @@ class Agent(object):
         return False
 
     def enter_group_by_finding(self, gid):
-        return False
+        return 1
 
     def enter_group(self, gid):
         if gid not in self.groups:
             logger.error("can not enter a unknown group!")
-            return False  # 暂时不接受进入无记录群的需求
+            return 1 # 暂时不接受进入无记录群的需求
         if not self.goto('CONTACTS'):
-            return False
+            return 2
         if not self.goto('GROUP_LIST'):
-            return False
+            return 3
         #前面两步操作保证进入的GROUP_LIST页面是没有被向下翻页过的
         if self.enter_group_by_postion(gid):
-            return True
+            return 0
         return self.enter_group_by_finding(gid)
 
     def wait_screen(self, expect_screen):
