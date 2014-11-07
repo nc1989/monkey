@@ -20,7 +20,7 @@ console.setLevel(logging.INFO)
 console.setFormatter(logging.Formatter(LOG_FORMAT, datefmt='%m-%d %H:%M:%S'))
 logging.getLogger('Main').addHandler(console)
 
-jython_lib = '/usr/local/Cellar/jython/2.5.3/libexec/Lib'
+jython_lib = '/home/chris/jython2.5.3/Lib'
 sys.path.append("%s/site-packages/simplejson-3.6.3-py2.5.egg" % jython_lib)
 sys.path.append("%s/site-packages/bottle-0.12.7-py2.5.egg" % jython_lib)
 

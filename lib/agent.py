@@ -7,7 +7,7 @@ import os
 import sys
 PWD = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.abspath(os.path.join(PWD, "../")))
-jython_lib = '/usr/local/Cellar/jython/2.5.3/libexec/Lib'
+jython_lib = '/home/chris/jython2.5.3/Lib'
 sys.path.append("%s/site-packages/simplejson-3.6.3-py2.5.egg" % jython_lib)
 sys.path.append('/Users/zhaoqifa/tools/jython2.5.3/Lib/site-packages/simplejson-3.6.5-py2.5.egg/')
 
