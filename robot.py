@@ -11,7 +11,7 @@ from lib.tools import url_get, url_post, get_local_ip
 import logging
 LOG_FORMAT = '%(asctime)s %(name)-5s %(levelname)-6s> %(message)s'
 logging.basicConfig(datefmt='%m-%d %H:%M:%S', level=logging.DEBUG,
-                    format=LOG_FORMAT, filename='agent.log',
+                    format=LOG_FORMAT, filename='robot.log',
                     encoding='utf8', filemode='w')
 logger = logging.getLogger('Main')
 
@@ -33,18 +33,12 @@ from bottle import Bottle, run, request, response, get, post
 
 
 app = Bottle()
-AGENT = None
-
-
-def job():
-    while True:
-        time.sleep(10)
-        logger.info("job running...")
+LISTNER = None
 
 
 @app.get('/inspect')
 def inspect():
-    data = AGENT.status()
+    data = LISTNER.status()
     return json.dumps({"status": 0, "data": data})
 
 
@@ -52,8 +46,8 @@ def inspect():
 def net_command():
     data = request.forms
     cmd = data.get('cmd', None)
-    if cmd and hasattr(AGENT, cmd):
-        executer = getattr(AGENT, cmd)
+    if cmd and hasattr(LISTNER, cmd):
+        executer = getattr(LISTNER, cmd)
         ret = executer(data)
     else:
         logger.error("command[%s] not found!", cmd)
@@ -70,38 +64,52 @@ def net_command():
     return json.dumps(r)
 
 
+class Robot(object):
+    def __init__(self, qq):
+        self.qq = qq
+        config = self.load_config()
+        self.local_ip = config["ip"]
+        self.robot_server = config["server"]
+        self.port = config[qq]["port"]
+        self.device_id = config[qq]["deviceid"]
+        # 以上这几步不做异常检查了，如果配置有误直接退出
+        #Step 1. 创建agent，用于操作模拟器
+        self.agent = Agent(qq, self.device_id)
+
+        #Step 2. 注册到server
+        self.register()
+
+        #Step 3. 启动后台job
+        th = Thread(target=self.job)
+        th.setDaemon(True)
+        th.start()
+
+    def job(self):
+        while True:
+            time.sleep(10)
+            logger.info("job running...")
+
+    def load_config(self):
+        qqlist_file = "./qqlist/qqlist.json"
+        if not os.path.isfile(qqlist_file):
+            logger.error("qqlist file[%s] not exist!", qqlist_file)
+            sys.exit(1)
+        f = open(qqlist_file, "r")
+        qqlist = json.loads(f.read().strip())
+        f.close()
+        return qqlist
+
+    def register(self):
+        command_url = "http://%s:%s/net_command" % (self.local_ip, self.port)
+        pass
+
+
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("--qq", dest="qq")
     (options, args) = parser.parse_args()
-
-    qqlist_file = "./qqlist/qqlist.json"
-    if not os.path.isfile(qqlist_file):
-        logger.error("qqlist file[%s] not exist!", qqlist_file)
-        sys.exit(1)
-    f = open(qqlist_file, "r")
-    qqlist = json.loads(f.read().strip())
-    f.close()
-
     qq = options.qq
-    local_ip = qqlist["ip"]
-    robot_server = qqlist["server"]
-    config = qqlist[options.qq]
-    port = config["port"]
-    device_id = config["deviceid"]
-    # 以上这几步不做异常检查了，如果配置有误直接退出
-    command_url = "http://%s:%s/net_command" % (local_ip, port)
 
-    global AGENT
-    AGENT = Agent(qq, device_id)
-
-    #启动后台job
-    th = Thread(target=job)
-    th.setDaemon(True)
-    th.start()
-
-    #注册
-    #TODO
-
-    #启动web
-    run(app, host='0.0.0.0', port=port)
+    global LISTNER
+    LISTNER = Robot(qq)
+    run(app, host='0.0.0.0', port=LISTNER.port)
