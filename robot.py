@@ -1,8 +1,9 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import os
 import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
 import time
 from threading import Thread
 from optparse import OptionParser
@@ -10,9 +11,9 @@ from lib.agent import Agent
 from lib.tools import url_get, url_post, get_local_ip
 import logging
 LOG_FORMAT = '%(asctime)s %(name)-5s %(levelname)-6s> %(message)s'
-logging.basicConfig(datefmt='%m-%d %H:%M:%S', level=logging.DEBUG,
-                    format=LOG_FORMAT, filename='robot.log',
-                    encoding='utf8', filemode='w')
+#logging.basicConfig(datefmt='%m-%d %H:%M:%S', level=logging.DEBUG,
+#                    format=LOG_FORMAT, filename='robot.log',
+#                    encoding='utf8', filemode='w')
 logger = logging.getLogger('Main')
 
 console = logging.StreamHandler()
@@ -73,23 +74,26 @@ class Robot(object):
         config = self.load_config()
         self.local_ip = config["ip"]
         self.robot_server = config["server"]
+        self.nickname = config[qq]["nickname"]
         self.port = config[qq]["port"]
         self.device_id = config[qq]["deviceid"]
         # 以上这几步不做异常检查了，如果配置有误直接退出
         #Step 1. 创建agent，用于操作模拟器
+        logger.info("启动Agent")
         self.agent = Agent(qq, self.device_id)
 
         #Step 2. 注册到server
         self.register()
 
         #Step 3. 启动后台job
+        logger.info("启动后台job任务")
         th = Thread(target=self.job)
         th.setDaemon(True)
         th.start()
 
     def job(self):
         while True:
-            time.sleep(10)
+            time.sleep(30)
             logger.info("job running...")
 
     def load_config(self):
@@ -103,8 +107,24 @@ class Robot(object):
         return qqlist
 
     def register(self):
+        logger.info("register robot to: %s", self.robot_server)
         command_url = "http://%s:%s/net_command" % (self.local_ip, self.port)
-        pass
+        groups = [{'groupId': gid, 'groupName': g.name}
+                  for gid, g in self.agent.groups.iteritems()]
+        data = {
+            'cmd': 'register',
+            'qq': self.qq,
+            'qqName': self.nickname,
+            'url': command_url,
+            'groupList': json.dumps(groups)
+        }
+        server_url = "http://%s:8001/net_command" % self.robot_server
+        ret = json.loads(url_post(server_url, data))
+        if 'status' in ret and ret['status'] == 0:
+            logger.info("register robot succeed!")
+        else:
+            logger.warning("register robot failed!")
+
 
     # 以下是暴露给net_command的API
     def enter_group(self, data):
@@ -121,7 +141,7 @@ class Robot(object):
         return self.agent.send_group_msg(msg)
 
     def check_group_msg(self, data):
-        msg =  data.get('msg', None)
+        msg = data.get('msg', None)
         if not msg:
             return -1, "msg is None"
         return self.agent.check_group_msg(msg)
