@@ -122,11 +122,29 @@ SCREEN_SWITCH_ACTION = {
 
 
 def get_view_text(view):
-    return view.namedProperties.get('text:mText').value.encode('utf8')
+    try:
+        return view.namedProperties.get('text:mText').value.encode('utf8')
+    except:
+        return None
+
+
+def get_view_property(view, property):
+    return view.namedProperties.get('layout:mLeft').value.encode('utf8')
+
+
+def extract_msg_layout(layout):
+    sender, msg = None, None
+    for elem in layout.children:
+        if elem.id == 'id/chat_item_nick_name':
+            sender = get_view_text(elem)[:-1]
+        elif elem.id == 'id/chat_item_content_layout':
+            msg = get_view_text(elem)
+    return sender, msg
 
 
 class Group(object):
-    def __init__(self, name, drag, pos):
+    def __init__(self, name, id, drag, pos):
+        self.id = id
         self.name = name
         self.drag = drag
         self.pos = pos
@@ -150,7 +168,7 @@ class Agent(object):
         in_fd = open(group_list_file)
         group_info = json.loads(in_fd.read().strip())
         for k, v in group_info.iteritems():
-            self.groups[k] = Group(v['groupName'], v['drag'], v['UILocation'])
+            self.groups[k] = Group(v['groupName'], k, v['drag'], v['UILocation'])
         in_fd.close()
 
     def gen_groups(self):
@@ -186,12 +204,28 @@ class Agent(object):
         #调用这个函数时，需要已经位于群信息界面
         xlist = self.retry_get_view_by_id('id/common_xlistview')
         if not xlist:
-            logger.error("提取群消息失败，已重试!")
+            logger.error("提取群信息失败，已重试!")
             return None, None
         nameAndId = xlist.children[0].children[2].children[0].children[1]
         name = get_view_text(nameAndId.children[0])
         groupId = get_view_text(nameAndId.children[1].children[0])
         return name, groupId
+
+    def extract_group_msgs(self):
+        logger.info("提取群消息")
+        listView = self.retry_get_view_by_id('id/listView1')
+        if not listView:
+            logger.error("提取群消息失败，已重试!")
+            return []
+        msgs = []
+        for layout in listView.children:
+            sender, msg = extract_msg_layout(layout)
+            if sender and msg:
+                # 自己发的消息解析出来sender会是None
+                # 纯图片或表情消息解析出来msg会是None
+                msgs.append((sender, msg))
+        logger.info("提取群消息完成")
+        return msgs
 
     def gen_group_members(self):
         self.goto('GROUP_MEMBER')
@@ -302,8 +336,10 @@ class Agent(object):
 
     def drag_one_screen(self, down):
         if down:
+            logger.info("drag one screen down")
             self.device.drag(DRAG_POS_DOWN, DRAG_POS_UP, 0.2, 1)
         else:
+            logger.info("drag one screen up")
             self.device.drag(DRAG_POS_UP, DRAG_POS_DOWN, 0.2, 1)
 
     def drag(self, pos):
@@ -349,16 +385,32 @@ class Agent(object):
         for i in xrange(length + 2):   # 多删两次
             self.device.press('KEYCODE_DEL')
 
-    def get_msg(self, target=None):
-        # 在'GROUP_CHAT'界面获取消息
-        pass
-    def check_group(self, gid):
-        #在GROUP_CHAT界面时，用来检测群号是否是gid
+    def check_group_msg(self, target):
+        # 在'GROUP_CHAT'界面查看是否有指定的消息
+        # 先获取第一屏的消息
+        logger.info("check group msg: %s", to_str(target))
+        for i in xrange(3):
+            if i != 0:
+                self.drag(-1)
+            msgs = self.extract_group_msgs()
+            for sender, msg in msgs:
+                logger.info("群消息[%s]来自[%s]", to_str(msg), to_str(sender))
+                if str_equal(msg, target):
+                    logger.info("target msg[%s] found", to_str(target))
+                    return True
+        logger.info("target msg[%s] not found in 3 screens", to_str(target))
+        return False
+
+    def get_group_name_id(self):
+        #在GROUP_CHAT界面时，获取group name和id
         if not self.goto('GROUP_INFO'):
-            return False
+            return None, None
         group_name, group_id = self.extract_group_info()
         self.goto('GROUP_CHAT')
-        return group_id == gid
+        return group_name, group_id
+
+    def update_groups(self, gname, gid, drag, pos):
+        self.groups[gid] = Group(gname, gid, drag, pos)
 
     def enter_group_by_postion(self, gid):
         group = self.groups[gid]
@@ -367,7 +419,14 @@ class Agent(object):
         if not self.switch_by_pixel('GROUP_LIST', 'GROUP_CHAT',
                                     HORIZON_MID, pos):
             return False
-        return self.check_group(gid)
+        group_name, group_id = self.get_group_name_id()
+        if group_id == gid:  # 成功返回True
+            return True
+
+        if group_name and group_id:
+            # 失败的话，更新groups信息，防止下次继续出错
+            self.update_groups(group_name, group_id, drag, pos)
+        return False
 
     def enter_group_by_finding(self, gid):
         return False
@@ -455,5 +514,8 @@ if __name__ == "__main__":
     #print agent.goto_device_home()
     #agent.gen_groups()
     #print agent.enter_group("301430156")
-    for i in xrange(50):
-        print agent.send_group_msg("天命，哈哈哈%s" % i, False)
+    #for i in xrange(50):
+    #    print agent.send_group_msg("天命，哈哈哈%s" % i, False)
+    print agent.check_group_msg('不要打岔')
+    print agent.check_group_msg('挺实惠的啊')
+    print agent.check_group_msg('挺实惠的啊123123')
