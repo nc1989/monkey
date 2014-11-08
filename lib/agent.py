@@ -338,13 +338,14 @@ class Agent(object):
 
     def drag_one_screen(self, down):
         if down:
-            logger.info("drag one screen down")
+            logger.debug("drag one screen down")
             self.device.drag(DRAG_POS_DOWN, DRAG_POS_UP, 0.2, 1)
         else:
-            logger.info("drag one screen up")
+            logger.debug("drag one screen up")
             self.device.drag(DRAG_POS_UP, DRAG_POS_DOWN, 0.2, 1)
 
     def drag(self, pos):
+        logger.info("drag screen: %s", pos)
         down = pos > 0
         for i in xrange(abs(pos)):
             self.drag_one_screen(down)
@@ -541,12 +542,12 @@ class Agent(object):
         logger.info('goto: %s', screen)
         for i in xrange(8):
             cs = self.current_screen()
-            logger.info("current screen: %s", cs)
+            logger.debug("current screen: %s", cs)
             if cs == screen:
                 logger.info("进入指定页面: %s", cs)
                 return True
             action, except_screen = SCREEN_SWITCH_ACTION[screen][cs]
-            logger.info("do_action: %s", action)
+            logger.debug("do_action: %s", action)
             self.do_action(action, gid)
             if not self.watch_screen_switch(cs, except_screen):
                 return False
