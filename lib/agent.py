@@ -214,6 +214,7 @@ class Agent(object):
             if str_equal(last_end_group_name, groups[-1][0]):
                 logger.info("群列表已到底部，扫描完毕")
                 break
+            last_end_group_name = groups[-1][0]
             self.walk_through_groups(i, groups)
 
     def walk_through_groups(self, drag, groups):
