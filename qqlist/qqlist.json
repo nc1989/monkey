@@ -1,41 +1,11 @@
 {
     "ip":"10.128.38.132",
     "server": "192.168.217.191",
-    "2902424837": {
-        "nickname":"橙色的勺子",
-        "port":8054,
-        "device":"Nexus-S",
-        "deviceid":"emulator-5554"
-    },
     "2195356784": {
         "nickname":"Coffee的粉丝",
         "port":8056,
         "device":"S1",
         "deviceid":"emulator-5556"
-    },
-    "3040493963": {
-        "nickname":"不辣de皮特",
-        "port":8058,
-        "device":"S2",
-        "deviceid":"emulator-5558"
-    },
-    "3067487368": {
-        "nickname":"Don't ask me!",
-        "port":8060,
-        "device":"S3",
-        "deviceid":"emulator-5560"
-    },
-    "2901490931": {
-        "nickname":"貂小婵",
-        "port":8062,
-        "device":"S4",
-        "deviceid":"emulator-5562"
-    },
-    "3083207001": {
-        "nickname":"逆袭的码农",
-        "port":8064,
-        "device":"S5",
-        "deviceid":"emulator-5564"
     },
     "252709415": {
         "nickname":"赖景琳",
@@ -49,11 +19,17 @@
         "device":"S7",
         "deviceid":"emulator-5568"
     },
-    "3047289506": {
-        "nickname":"白白酱",
-        "port":8070,
-        "device":"S8",
-        "deviceid":"emulator-5570"
+    "2901490931": {
+        "nickname":"貂小婵",
+        "port":8062,
+        "device":"S4",
+        "deviceid":"emulator-5562"
+    },
+    "2902424837": {
+        "nickname":"橙色的勺子",
+        "port":8054,
+        "device":"Nexus-S",
+        "deviceid":"emulator-5554"
     },
     "2971248806": {
         "nickname":"奔跑滴CC",
@@ -61,16 +37,28 @@
         "device":"S9",
         "deviceid":"emulator-5572"
     },
-    "123": {
-        "nickname":"",
-        "port":8074,
-        "device":"S10",
-        "deviceid":"emulator-5574"
+    "3040493963": {
+        "nickname":"不辣de皮特",
+        "port":8058,
+        "device":"S2",
+        "deviceid":"emulator-5558"
     },
-    "123": {
-        "nickname":"",
-        "port":8076,
-        "device":"S11",
-        "deviceid":"emulator-5576"
+    "3047289506": {
+        "nickname":"白白酱",
+        "port":8070,
+        "device":"S8",
+        "deviceid":"emulator-5570"
+    },
+    "3067487368": {
+        "nickname":"Don't ask me!",
+        "port":8060,
+        "device":"S3",
+        "deviceid":"emulator-5560"
+    },
+    "3083207001": {
+        "nickname":"逆袭的码农",
+        "port":8064,
+        "device":"S5",
+        "deviceid":"emulator-5564"
     }
 }
