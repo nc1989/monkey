@@ -397,7 +397,6 @@ class Agent(object):
             time.sleep(0.5)
 
     def set_focus(self):
-        return
         self.drag(1)
 
     def send_group_msg(self, msg, validate=True):
