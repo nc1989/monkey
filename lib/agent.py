@@ -350,14 +350,21 @@ class Agent(object):
 
     def current_activity(self):
         for i in xrange(50):
-            hViewer = self.device.getHierarchyViewer()
-            win_name = hViewer.getFocusedWindowName()
+            try:
+                hViewer = self.device.getHierarchyViewer()
+                win_name = hViewer.getFocusedWindowName()
+            except:
+                if i % 10 == 0:
+                    logger.error("get hierarchy view failed!!!")
+                win_name = None
             if win_name is not None:
                 return win_name.split('.')[-1]
             time.sleep(0.2)
 
     def current_screen(self):
         cur_ac = self.current_activity()
+        if not cur_ac:
+            return None
         screens = SCREENS[cur_ac]
         if isinstance(screens, basestring):
             return screens
@@ -617,6 +624,8 @@ class Agent(object):
         logger.info('goto: %s', screen)
         for i in xrange(8):
             cs = self.current_screen()
+            if not cs:
+                continue
             logger.debug("current screen: %s", cs)
             if cs == screen:
                 logger.info("进入指定页面: %s", to_str(cs))
