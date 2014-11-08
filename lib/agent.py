@@ -25,6 +25,7 @@ console.setFormatter(logging.Formatter(LOG_FORMAT, datefmt='%m-%d %H:%M:%S'))
 logging.getLogger('Agent').addHandler(console)
 
 import simplejson as json
+from optparse import OptionParser
 from utils import get_encoded_character
 from lib.tools import str_equal, to_unicode, to_str
 
@@ -185,16 +186,22 @@ class Agent(object):
         out_fd.close()
 
     def gen_groups(self):
+        logger.info("遍历群并生成群信息")
         self.goto('GROUP_LIST')
         for i in xrange(15):
             if i != 0:
                 self.drag(1)
-            positions = self.extract_groups()
-            for name, pos in positions:
-                logger.info("enter: %s", to_str(name))
-                self.touch_pixel(HORIZON_MID, pos)
-                time.sleep(0.5)
-                self.goto('GROUP_LIST')
+            groups = self.extract_groups()
+            self.walk_through_groups(i, groups)
+
+    def walk_through_groups(self, drag, groups):
+        for name, pos in groups:
+            logger.info("enter: %s", to_str(name))
+            self.switch_by_pixel('GROUP_LIST', 'GROUP_CHAT', HORIZON_MID, pos)
+            gname, gid = self.get_group_name_id()
+            if gname and gid:
+                self.update_groups(gname, gid, drag, pos)
+            self.goto('GROUP_LIST')
 
     def extract_groups(self):
         troop_list = self.retry_get_view_by_id('id/qb_troop_list_view')
@@ -445,8 +452,9 @@ class Agent(object):
 
         group_name, group_id = self.get_group_name_id()
         #每次解析过一个群的name和id之后，本地存一下
-        total_drag = current_drag + drag
-        self.update_groups(group_name, group_id, total_drag, pos)
+        if group_name and group_id:
+            total_drag = current_drag + drag
+            self.update_groups(group_name, group_id, total_drag, pos)
 
         if group_id == gid:  # 成功返回True
             logger.info("群号匹配成功")
@@ -582,25 +590,32 @@ class Agent(object):
 
 
 if __name__ == "__main__":
-    agent = Agent("2902424837", "emulator-5554")
+    parser = OptionParser()
+    parser.add_option("--qq", dest="qq")
+    parser.add_option("--device", dest="device")
+    (options, args) = parser.parse_args()
+    qq = options.qq
+    device = options.device
+
+    agent = Agent(qq, device)
     #agent.dump_groups()
     #print agent.goto('GROUP_LIST')
     #print agent.goto('CONTACTS')
     #print agent.goto_device_home()
-    #agent.gen_groups()
-    suc_num = 0
-    fail_num = 0
-    gids = agent.groups.keys()
-    for gid in gids:
-        try:
-            ret = agent.enter_group(gid)
-        except:
-            ret = 1
-        if ret == 0:
-            suc_num += 1
-        else:
-            fail_num += 1
-    print "suc_num=%d, fail_num=%d" % (suc_num, fail_num)
+    agent.gen_groups()
+    #suc_num = 0
+    #fail_num = 0
+    #gids = agent.groups.keys()
+    #for gid in gids:
+    #    try:
+    #        ret = agent.enter_group(gid)
+    #    except:
+    #        ret = 1
+    #    if ret == 0:
+    #        suc_num += 1
+    #    else:
+    #        fail_num += 1
+    #print "suc_num=%d, fail_num=%d" % (suc_num, fail_num)
 
     #for i in xrange(50):
     #    print agent.send_group_msg("天命，哈哈哈%s" % i, False)
