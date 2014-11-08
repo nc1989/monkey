@@ -195,7 +195,7 @@ class Agent(object):
             group_info[k] = {"groupName": v.name, "drag": v.drag,
                              "UILocation": v.pos}
         out_fd = open(group_list_file, "w")
-        out_fd.write(json.dumps(group_info, indent=4))
+        out_fd.write(json.dumps(group_info, indent=4, sort_keys=True))
         out_fd.close()
 
     def gen_groups(self):
