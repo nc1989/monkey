@@ -559,19 +559,19 @@ if __name__ == "__main__":
     #print agent.goto('CONTACTS')
     #print agent.goto_device_home()
     #agent.gen_groups()
-    print agent.enter_group("301430156")
-    print agent.enter_group("326027223")
-    print agent.enter_group("390048779")
-    print agent.enter_group("330635757")
-    print agent.enter_group("361394670")
-    print agent.enter_group("87646463")
-    print agent.enter_group("246319397")
-    print agent.enter_group("60588793")
-    print agent.enter_group("159643583")
-    print agent.enter_group("95627741")
-    print agent.enter_group("384048199")
-    print agent.enter_group("295024743")
-    print agent.enter_group("86904231")
+    suc_num = 0
+    fail_num = 0
+    for gid in agent.groups.iterkeys():
+        try:
+            ret = agent.enter_group(gid)
+        except:
+            ret = 1
+        if ret == 0:
+            suc_num += 1
+        else:
+            fail_num += 1
+    print "suc_num=%d, fail_num=%d" % (suc_num, fail_num)
+
     #for i in xrange(50):
     #    print agent.send_group_msg("天命，哈哈哈%s" % i, False)
     #print agent.check_group_msg('不要打岔')
