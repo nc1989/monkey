@@ -170,8 +170,19 @@ class Agent(object):
         in_fd = open(group_list_file)
         group_info = json.loads(in_fd.read().strip())
         for k, v in group_info.iteritems():
-            self.groups[k] = Group(v['groupName'], k, v['drag'], v['UILocation'])
+            self.groups[k] = Group(v['groupName'], k, v['drag'],
+                                   v['UILocation'])
         in_fd.close()
+
+    def dump_groups(self):
+        group_list_file = "grouplist/%s.grouplist" % self.qq
+        group_info = {}
+        for k, v in self.groups.iteritems():
+            group_info[k] = {"groupName": v.name, "drag": v.drag,
+                             "UILocation": v.pos}
+        out_fd = open(group_list_file, "w")
+        out_fd.write(json.dumps(group_info))
+        out_fd.close()
 
     def gen_groups(self):
         self.goto('GROUP_LIST')
@@ -345,6 +356,8 @@ class Agent(object):
             self.device.drag(DRAG_POS_UP, DRAG_POS_DOWN, 0.2, 1)
 
     def drag(self, pos):
+        if pos == 0:
+            return
         logger.info("drag screen: %s", pos)
         down = pos > 0
         for i in xrange(abs(pos)):
@@ -417,14 +430,23 @@ class Agent(object):
 
     def update_groups(self, gname, gid, drag, pos):
         self.groups[gid] = Group(gname, gid, drag, pos)
+        try:
+            self.dump_groups()
+        except:
+            logger.warning("dump groups info failed!")
 
-    def enter_group_by_postion(self, gid, drag, pos):
+    def enter_group_by_postion(self, gid, current_drag, drag, pos):
         logger.info("根据位置进群[%s]，drag/pos=%s/%s", gid, drag, pos)
         self.drag(drag)
         if not self.switch_by_pixel('GROUP_LIST', 'GROUP_CHAT',
                                     HORIZON_MID, pos):
             return False
+
         group_name, group_id = self.get_group_name_id()
+        #每次解析过一个群的name和id之后，本地存一下
+        total_drag = current_drag + drag
+        self.update_groups(group_name, group_id, total_drag, pos)
+
         if group_id == gid:  # 成功返回True
             logger.info("群号匹配成功")
             return True
@@ -436,14 +458,14 @@ class Agent(object):
         self.goto("GROUP_LIST")  # 进群失败，退回到群列表页
         return False
 
-    def enter_group_in_screen(self, gname, gid):
+    def enter_group_in_screen(self, current_drag, gname, gid):
         #解析并验证当前屏幕上的群组
         logger.info("解析当前屏幕所有群")
         screen_groups = self.extract_groups()
         for name, pos in screen_groups:
             if str_equal(name, gname):
                 logger.info("发现名字[%s]匹配的群，进入验证群号", to_str(name))
-                if self.enter_group_by_postion(gid, 0, pos):
+                if self.enter_group_by_postion(gid, current_drag, 0, pos):
                     logger.info("恭喜，进群成功")
                     return True
         logger.info("当前屏幕没有找到指定群[%s,%s]", to_str(gid), to_str(gname))
@@ -454,7 +476,7 @@ class Agent(object):
             return
         gname = self.groups[gid].name
         logger.info("尝试查找并进入群[%s,%s]", to_str(gid), to_str(gname))
-        if self.enter_group_in_screen(gname, gid):
+        if self.enter_group_in_screen(current_drag, gname, gid):
             return 0
 
         #当前屏幕没有找到，往上翻一页去找
@@ -462,7 +484,7 @@ class Agent(object):
         if current_drag != 0:
             logger.info("往前翻1屏，继续查找")
             self.drag(-1)
-            if self.enter_group_in_screen(gname, gid):
+            if self.enter_group_in_screen(current_drag, gname, gid):
                 return 0
 
         #如果当前屏幕的前一屏幕也没有找到，进入后一屏去找
@@ -470,7 +492,7 @@ class Agent(object):
         drag = 2 if current_drag != 0 else 1
         logger.info("往后翻%s屏，继续查找", gid)
         self.drag(drag)
-        if self.enter_group_in_screen(gname, gid):
+        if self.enter_group_in_screen(current_drag, gname, gid):
             return 0
 
         logger.error("前后1屏都没找到对应群，累死了，不找了")
@@ -488,7 +510,7 @@ class Agent(object):
         #前面两步操作保证进入的GROUP_LIST页面是没有被向下翻页过的
         group = self.groups[gid]
         drag, pos = group.drag, group.pos
-        if self.enter_group_by_postion(gid, drag, pos):
+        if self.enter_group_by_postion(gid, 0, drag, pos):
             logger.info("根据位置进群[%s]成功", gid)
             return 0
         logger.info("根据位置进群[%s]失败", gid)
@@ -559,6 +581,7 @@ class Agent(object):
 
 if __name__ == "__main__":
     agent = Agent("2902424837", "emulator-5554")
+    #agent.dump_groups()
     #print agent.goto('GROUP_LIST')
     #print agent.goto('CONTACTS')
     #print agent.goto_device_home()
