@@ -191,7 +191,7 @@ class Agent(object):
                 self.drag(1)
             positions = self.extract_groups()
             for name, pos in positions:
-                logger.info("enter: %s", name)
+                logger.info("enter: %s", to_str(name))
                 self.touch_pixel(HORIZON_MID, pos)
                 time.sleep(0.5)
                 self.goto('GROUP_LIST')
@@ -436,7 +436,8 @@ class Agent(object):
             logger.warning("dump groups info failed!")
 
     def enter_group_by_postion(self, gid, current_drag, drag, pos):
-        logger.info("根据位置进群[%s]，drag/pos=%s/%s", gid, drag, pos)
+        logger.info("根据位置进群[%s]，drag/pos=%s/%s", to_str(gid),
+                    to_str(drag), to_str(pos))
         self.drag(drag)
         if not self.switch_by_pixel('GROUP_LIST', 'GROUP_CHAT',
                                     HORIZON_MID, pos):
@@ -450,7 +451,7 @@ class Agent(object):
         if group_id == gid:  # 成功返回True
             logger.info("群号匹配成功")
             return True
-        logger.warning("群号匹配不成功，%s != %s", group_id, gid)
+        logger.warning("群号匹配不成功，%s!=%s", to_str(group_id), to_str(gid))
 
         if group_name and group_id:
             # 失败的话，更新groups信息，防止下次继续出错
@@ -490,7 +491,7 @@ class Agent(object):
         #如果当前屏幕的前一屏幕也没有找到，进入后一屏去找
         #如果之前往上翻过一屏了，现在需要往下翻两屏
         drag = 2 if current_drag != 0 else 1
-        logger.info("往后翻%s屏，继续查找", gid)
+        logger.info("往后翻%s屏，继续查找", to_str(gid))
         self.drag(drag)
         if self.enter_group_in_screen(current_drag, gname, gid):
             return 0
@@ -499,9 +500,9 @@ class Agent(object):
         return 1
 
     def enter_group(self, gid):
-        logger.info("准备进入群[%s]", gid)
+        logger.info("准备进入群[%s]", to_str(gid))
         if gid not in self.groups:
-            logger.error("群列表中没有该群的登记信息[%s]，不能进", gid)
+            logger.error("群列表中没有该群的登记信息[%s]，不能进", to_str(gid))
             return 1  # 暂时不接受进入无记录群的需求
         if not self.goto('CONTACTS'):
             return 2
@@ -511,9 +512,9 @@ class Agent(object):
         group = self.groups[gid]
         drag, pos = group.drag, group.pos
         if self.enter_group_by_postion(gid, 0, drag, pos):
-            logger.info("根据位置进群[%s]成功", gid)
+            logger.info("根据位置进群[%s]成功", to_str(gid))
             return 0
-        logger.info("根据位置进群[%s]失败", gid)
+        logger.info("根据位置进群[%s]失败", to_str(gid))
         return self.enter_group_by_finding(drag, gid)
 
     def wait_screen(self, expect_screen):
@@ -566,7 +567,7 @@ class Agent(object):
             cs = self.current_screen()
             logger.debug("current screen: %s", cs)
             if cs == screen:
-                logger.info("进入指定页面: %s", cs)
+                logger.info("进入指定页面: %s", to_str(cs))
                 return True
             action, except_screen = SCREEN_SWITCH_ACTION[screen][cs]
             logger.debug("do_action: %s", action)
