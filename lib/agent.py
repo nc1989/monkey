@@ -48,6 +48,8 @@ BUTTON_LOCATION = {
     'INPUT_END': (370, 780),
     'PASTE': (165, 725),
     'SEND': (430, 760),
+    'REC_SEND': (428, 467),  # 录音界面出来时，SEND按钮的位置
+    'MSG_SPACE': (240, 420),  # 录音界面出来后，点击消息的空白位置
 }
 
 HORIZON_MID = 240
@@ -391,22 +393,30 @@ class Agent(object):
 
         self.long_touch_pixel(*BUTTON_LOCATION['INPUT'])
         time.sleep(0.2)
-        self.touch_pixel(*BUTTON_LOCATION['PASTE'])
+        self.touch_button('PASTE')
         logger.debug('send_group_msg click PASTE done')
 
         if validate:
             #验证消息
             logger.debug('validate msg begin')
             msg_to_send = self.get_view_text_by_id('id/input')
+            if not msg_to_send:  # 消息没粘贴上或者语言输入打开了
+                send_btn = self.get_view_text_by_id('id/fun_btn')
+                if str_equal("切换到文字输入", send_btn):
+                    self.touch_button('REC_SEND')
+                    time.sleep(0.5)
+                    self.touch_button('MSG_SPACE')
+                return 2
+            #消息框有内容了，验证一下对不对
             if not str_equal(msg_to_send, msg):
                 logger.error("要发送的消息[%s]和输入框中的消息[%s]不一致",
                              to_str(msg), to_str(msg_to_send))
-                if msg_to_send:  # 消息没发送要把残留的消息删掉
-                    self.delete_msg(len(msg_to_send))
+                #消息没发送要把残留的消息删掉
+                self.delete_msg(len(msg_to_send))
                 return 1
             logger.debug('validate msg done')
 
-        self.touch_pixel(*BUTTON_LOCATION['SEND'])
+        self.touch_button('SEND')
         return 0
 
     def delete_msg(self, length):
