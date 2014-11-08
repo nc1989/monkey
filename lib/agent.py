@@ -496,25 +496,26 @@ class Agent(object):
         if self.enter_group_in_screen(current_drag, gname, gid):
             return 0
 
-        logger.error("前后1屏都没找到对应群，累死了，不找了")
+        logger.error("前后1屏都没找到对应群[%s,%s]，累死了，不找了",
+                     to_str(gid), to_str(gname))
         return 1
 
     def enter_group(self, gid):
-        logger.info("准备进入群[%s]", to_str(gid))
         if gid not in self.groups:
-            logger.error("群列表中没有该群的登记信息[%s]，不能进", to_str(gid))
+            logger.error("群列表中没有该群[%s]的登记信息，不能进", to_str(gid))
             return 1  # 暂时不接受进入无记录群的需求
+        group = self.groups[gid]
+        drag, pos, gname = group.drag, group.pos, group.name
+        logger.info("准备进入群[%s,%s]", to_str(gid), to_str(gname))
         if not self.goto('CONTACTS'):
             return 2
         if not self.goto('GROUP_LIST'):
             return 3
         #前面两步操作保证进入的GROUP_LIST页面是没有被向下翻页过的
-        group = self.groups[gid]
-        drag, pos = group.drag, group.pos
         if self.enter_group_by_postion(gid, 0, drag, pos):
-            logger.info("根据位置进群[%s]成功", to_str(gid))
+            logger.info("根据位置进群[%s,%s]成功", to_str(gid), to_str(gname))
             return 0
-        logger.info("根据位置进群[%s]失败", to_str(gid))
+        logger.info("根据位置进群[%s,%s]失败", to_str(gid), to_str(gname))
         return self.enter_group_by_finding(drag, gid)
 
     def wait_screen(self, expect_screen):
