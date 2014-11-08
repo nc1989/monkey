@@ -563,7 +563,8 @@ if __name__ == "__main__":
     #agent.gen_groups()
     suc_num = 0
     fail_num = 0
-    for gid in agent.groups.iterkeys():
+    gids = agent.groups.keys()
+    for gid in gids:
         try:
             ret = agent.enter_group(gid)
         except:
