@@ -5,6 +5,8 @@ from com.android.monkeyrunner.easy import EasyMonkeyDevice, By
 from com.android.chimpchat.hierarchyviewer import HierarchyViewer
 import os
 import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
 PWD = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.abspath(os.path.join(PWD, "../")))
 jython_lib = '/home/chris/jython2.5.3/Lib'
