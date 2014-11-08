@@ -197,7 +197,7 @@ class Agent(object):
             name = get_view_text(gv.children[1].children[2].children[1])
             pos = gv.top + gv.height / 2 + 182
             if pos <= 185:
-                logger.info("DANGER POS: %s", pos)
+                logger.debug("DANGER POS: %s", pos)
                 continue
             ret.append((name, pos))
         return ret
