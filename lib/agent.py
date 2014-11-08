@@ -17,9 +17,6 @@ sys.path.append('/Users/zhaoqifa/tools/jython2.5.3/Lib/site-packages/simplejson-
 import time
 import logging
 LOG_FORMAT = '%(asctime)s %(name)-5s %(levelname)-6s> %(message)s'
-logging.basicConfig(datefmt='%m-%d %H:%M:%S', level=logging.DEBUG,
-                    format=LOG_FORMAT, filename='agent.log',
-                    encoding='utf8', filemode='w')
 logger = logging.getLogger('Agent')
 
 console = logging.StreamHandler()
@@ -154,6 +151,9 @@ class Group(object):
 
 class Agent(object):
     def __init__(self, qq, device_id):
+        logging.basicConfig(datefmt='%m-%d %H:%M:%S', level=logging.DEBUG,
+                            format=LOG_FORMAT, filename='logs/%s.log' % qq,
+                            encoding='utf8', filemode='w')
         self.qq = qq
         self.device_id = device_id
         logger.info('connect to adb device')

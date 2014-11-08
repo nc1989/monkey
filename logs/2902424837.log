@@ -1,0 +1,5 @@
+11-08 14:16:17 Agent INFO  > connect to adb device
+11-08 14:16:19 Agent INFO  > connect to adb device done
+11-08 14:16:19 Main  INFO  > register robot to: 192.168.217.191
+11-08 14:16:19 Main  INFO  > register robot succeed!
+11-08 14:16:19 Main  INFO  > 启动后台job任务
