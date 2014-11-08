@@ -67,6 +67,8 @@ SCREENS = {
     'TroopNewcomerNoticeActivity': 'GROUP_NOTICE',
 }
 
+SCREENS_NEED_FOCUS = ('GROUP_LIST', 'GROUP_CHAT')
+
 SCREEN_SWITCH_ACTION = {
     'MESSAGES': {
         'MESSAGES': None,
@@ -135,6 +137,7 @@ def get_view_text(view):
     try:
         return view.namedProperties.get('text:mText').value.encode('utf8')
     except:
+        logger.warning("get view text failed!")
         return None
 
 
@@ -207,7 +210,9 @@ class Agent(object):
     def walk_through_groups(self, drag, groups):
         for name, pos in groups:
             logger.info("enter: %s", to_str(name))
-            self.switch_by_pixel('GROUP_LIST', 'GROUP_CHAT', HORIZON_MID, pos)
+            if not self.switch_by_pixel('GROUP_LIST', 'GROUP_CHAT',
+                                        HORIZON_MID, pos):
+                continue
             gname, gid = self.get_group_name_id()
             if gname and gid:
                 self.update_groups(gname, gid, drag, pos)
@@ -219,11 +224,16 @@ class Agent(object):
             logger.error("提取群列表元素失败，已重试!")
             return []
         ret = []
+        logger.debug("troop_list children size: %s", len(troop_list.children))
         for gv in troop_list.children:
-            if get_view_text(gv.children[0]):  # 排除我创建的群这样的元素
+            _text = get_view_text(gv.children[0])
+            if _text:  # 排除我创建的群这样的元素
+                logger.debug("skip: %s", to_str(_text))
                 continue
             name = get_view_text(gv.children[1].children[2].children[1])
             pos = gv.top + gv.height / 2 + 182
+            logger.debug("find troop: %s-->%s %s %s", to_str(name),
+                         to_str(gv.top), to_str(gv.height), to_str(pos))
             if pos <= 185:
                 logger.debug("DANGER POS: %s", pos)
                 continue
@@ -367,10 +377,12 @@ class Agent(object):
     def drag_one_screen(self, down):
         if down:
             logger.debug("drag one screen down")
-            self.device.drag(DRAG_POS_DOWN, DRAG_POS_UP, 0.2, 1)
+            self.device.press('KEYCODE_PAGE_DOWN')
+            #self.device.drag(DRAG_POS_DOWN, DRAG_POS_UP, 0.2, 1)
         else:
             logger.debug("drag one screen up")
-            self.device.drag(DRAG_POS_UP, DRAG_POS_DOWN, 0.2, 1)
+            self.device.press('KEYCODE_PAGE_UP')
+            #self.device.drag(DRAG_POS_UP, DRAG_POS_DOWN, 0.2, 1)
 
     def drag(self, pos):
         if pos == 0:
@@ -380,6 +392,10 @@ class Agent(object):
         for i in xrange(abs(pos)):
             self.drag_one_screen(down)
             time.sleep(0.5)
+
+    def set_focus(self):
+        return
+        self.drag(1)
 
     def send_group_msg(self, msg, validate=True):
         logger.info('send msg: %s', to_str(msg))
@@ -595,12 +611,14 @@ class Agent(object):
             logger.debug("current screen: %s", cs)
             if cs == screen:
                 logger.info("进入指定页面: %s", to_str(cs))
+                if cs in SCREENS_NEED_FOCUS and i != 0:
+                    self.set_focus()
                 return True
-            action, except_screen = SCREEN_SWITCH_ACTION[screen][cs]
+            action, expect_screen = SCREEN_SWITCH_ACTION[screen][cs]
             logger.debug("do_action: %s", action)
             self.do_action(action, gid)
             if expect_screen:
-                if not self.watch_screen_switch(cs, except_screen):
+                if not self.watch_screen_switch(cs, expect_screen):
                     return False
             else:
                 #有些按钮点完不一定跳到什么界面，不固定的，
@@ -627,6 +645,10 @@ if __name__ == "__main__":
     #print agent.goto('CONTACTS')
     #print agent.goto_device_home()
     agent.gen_groups()
+    #for i in xrange(10):
+    #    print i
+    #    agent.drag(1)
+    #    time.sleep(10)
     #suc_num = 0
     #fail_num = 0
     #gids = agent.groups.keys()
