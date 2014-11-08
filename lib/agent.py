@@ -181,7 +181,7 @@ class Agent(object):
             group_info[k] = {"groupName": v.name, "drag": v.drag,
                              "UILocation": v.pos}
         out_fd = open(group_list_file, "w")
-        out_fd.write(json.dumps(group_info))
+        out_fd.write(json.dumps(group_info, indent=4))
         out_fd.close()
 
     def gen_groups(self):
@@ -582,24 +582,24 @@ class Agent(object):
 
 if __name__ == "__main__":
     agent = Agent("2902424837", "emulator-5554")
-    #agent.dump_groups()
+    agent.dump_groups()
     #print agent.goto('GROUP_LIST')
     #print agent.goto('CONTACTS')
     #print agent.goto_device_home()
     #agent.gen_groups()
-    suc_num = 0
-    fail_num = 0
-    gids = agent.groups.keys()
-    for gid in gids:
-        try:
-            ret = agent.enter_group(gid)
-        except:
-            ret = 1
-        if ret == 0:
-            suc_num += 1
-        else:
-            fail_num += 1
-    print "suc_num=%d, fail_num=%d" % (suc_num, fail_num)
+    #suc_num = 0
+    #fail_num = 0
+    #gids = agent.groups.keys()
+    #for gid in gids:
+    #    try:
+    #        ret = agent.enter_group(gid)
+    #    except:
+    #        ret = 1
+    #    if ret == 0:
+    #        suc_num += 1
+    #    else:
+    #        fail_num += 1
+    #print "suc_num=%d, fail_num=%d" % (suc_num, fail_num)
 
     #for i in xrange(50):
     #    print agent.send_group_msg("天命，哈哈哈%s" % i, False)
