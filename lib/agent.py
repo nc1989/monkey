@@ -40,6 +40,7 @@ BUTTON_LOCATION = {
     'GROUPS': (300, 230),
     'MY_GROUPS': (100, 150),  # 我的群
     'GROUP_INPUT': (130, 710),
+    'NOTICE_ACCEPT': (240, 650),
 
     'QQ_NAME': (40, 75),
     'QQ_START': (50, 750),
@@ -61,6 +62,7 @@ SCREENS = {
     'ChatSettingForTroop': 'GROUP_INFO',
     'TroopMemberListActivity': 'GROUP_MEMBER',
     'TroopMemberCardActivity': 'GROUP_MEMBER_INFO',
+    'TroopNewcomerNoticeActivity': 'GROUP_NOTICE',
 }
 
 SCREEN_SWITCH_ACTION = {
@@ -72,6 +74,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_INFO': ('LEFT_UP', 'GROUP_CHAT'),
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
+        'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
     },
     'CONTACTS': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -81,6 +84,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_INFO': ('LEFT_UP', 'GROUP_CHAT'),
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
+        'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
     },
     'GROUP_LIST': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -90,6 +94,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_INFO': ('LEFT_UP', 'GROUP_CHAT'),
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
+        'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
     },
     'GROUP_CHAT': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -99,6 +104,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_INFO': ('LEFT_UP', 'GROUP_CHAT'),
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
+        'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
     },
     'GROUP_INFO': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -108,6 +114,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_INFO': None,
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
+        'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
     },
     'GROUP_MEMBER': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -117,6 +124,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_INFO': ('RIGHT_UP', 'GROUP_MEMBER'),
         'GROUP_MEMBER': None,
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
+        'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
     },
 }
 
@@ -581,8 +589,14 @@ class Agent(object):
             action, except_screen = SCREEN_SWITCH_ACTION[screen][cs]
             logger.debug("do_action: %s", action)
             self.do_action(action, gid)
-            if not self.watch_screen_switch(cs, except_screen):
-                return False
+            if expect_screen:
+                if not self.watch_screen_switch(cs, except_screen):
+                    return False
+            else:
+                #有些按钮点完不一定跳到什么界面，不固定的，
+                #比如群通知界面，点完之后是回到原界面，原界面是不固定的
+                #直接进入下次循环就行
+                pass
         return False
 
     def goto_device_home(self):
