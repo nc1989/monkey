@@ -409,7 +409,8 @@ class Agent(object):
         if not self.goto('GROUP_INFO'):
             return None, None
         group_name, group_id = self.extract_group_info()
-        logger.info("获取到群的名字和id为: %s,%s", to_str(group_name), group_id)
+        logger.info("获取到群的名字和id为: %s,%s",
+                    to_str(group_name), to_str(group_id))
         self.goto('GROUP_CHAT')
         return group_name, group_id
 
@@ -444,14 +445,14 @@ class Agent(object):
                 if self.enter_group_by_postion(gid, 0, pos):
                     logger.info("恭喜，进群成功")
                     return True
-        logger.info("当前屏幕没有找到指定群[%s,%s]", gid, to_str(gname))
+        logger.info("当前屏幕没有找到指定群[%s,%s]", to_str(gid), to_str(gname))
         return False
 
     def enter_group_by_finding(self, current_drag, gid):
         if not self.goto("GROUP_LIST"):
             return
         gname = self.groups[gid].name
-        logger.info("尝试查找并进入群[%s,%s]", gid, to_str(gname))
+        logger.info("尝试查找并进入群[%s,%s]", to_str(gid), to_str(gname))
         if self.enter_group_in_screen(gname, gid):
             return 0
 
