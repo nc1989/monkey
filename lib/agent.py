@@ -200,7 +200,10 @@ class Agent(object):
 
     def gen_groups(self):
         logger.info("遍历群并生成群信息")
-        self.goto('GROUP_LIST')
+        if not self.goto('CONTACTS'):
+            return
+        if not self.goto('GROUP_LIST'):
+            return
         for i in xrange(15):
             if i != 0:
                 self.drag(1)
