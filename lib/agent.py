@@ -40,6 +40,7 @@ BUTTON_LOCATION = {
     'GROUPS': (300, 230),
     'MY_GROUPS': (100, 150),  # 我的群
     'GROUP_INPUT': (130, 710),
+    'NOTICE_ACCEPT': (240, 650),
 
     'QQ_NAME': (40, 75),
     'QQ_START': (50, 750),
@@ -47,6 +48,8 @@ BUTTON_LOCATION = {
     'INPUT_END': (370, 780),
     'PASTE': (165, 725),
     'SEND': (430, 760),
+    'REC_SEND': (428, 467),  # 录音界面出来时，SEND按钮的位置
+    'MSG_SPACE': (240, 420),  # 录音界面出来后，点击消息的空白位置
 }
 
 HORIZON_MID = 240
@@ -61,7 +64,10 @@ SCREENS = {
     'ChatSettingForTroop': 'GROUP_INFO',
     'TroopMemberListActivity': 'GROUP_MEMBER',
     'TroopMemberCardActivity': 'GROUP_MEMBER_INFO',
+    'TroopNewcomerNoticeActivity': 'GROUP_NOTICE',
 }
+
+SCREENS_NEED_FOCUS = ('GROUP_LIST', 'GROUP_CHAT')
 
 SCREEN_SWITCH_ACTION = {
     'MESSAGES': {
@@ -72,6 +78,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_INFO': ('LEFT_UP', 'GROUP_CHAT'),
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
+        'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
     },
     'CONTACTS': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -81,6 +88,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_INFO': ('LEFT_UP', 'GROUP_CHAT'),
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
+        'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
     },
     'GROUP_LIST': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -90,6 +98,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_INFO': ('LEFT_UP', 'GROUP_CHAT'),
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
+        'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
     },
     'GROUP_CHAT': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -99,6 +108,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_INFO': ('LEFT_UP', 'GROUP_CHAT'),
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
+        'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
     },
     'GROUP_INFO': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -108,6 +118,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_INFO': None,
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
+        'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
     },
     'GROUP_MEMBER': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -117,6 +128,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_INFO': ('RIGHT_UP', 'GROUP_MEMBER'),
         'GROUP_MEMBER': None,
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
+        'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
     },
 }
 
@@ -125,6 +137,7 @@ def get_view_text(view):
     try:
         return view.namedProperties.get('text:mText').value.encode('utf8')
     except:
+        logger.warning("get view text failed!")
         return None
 
 
@@ -197,7 +210,9 @@ class Agent(object):
     def walk_through_groups(self, drag, groups):
         for name, pos in groups:
             logger.info("enter: %s", to_str(name))
-            self.switch_by_pixel('GROUP_LIST', 'GROUP_CHAT', HORIZON_MID, pos)
+            if not self.switch_by_pixel('GROUP_LIST', 'GROUP_CHAT',
+                                        HORIZON_MID, pos):
+                continue
             gname, gid = self.get_group_name_id()
             if gname and gid:
                 self.update_groups(gname, gid, drag, pos)
@@ -209,11 +224,16 @@ class Agent(object):
             logger.error("提取群列表元素失败，已重试!")
             return []
         ret = []
+        logger.debug("troop_list children size: %s", len(troop_list.children))
         for gv in troop_list.children:
-            if get_view_text(gv.children[0]):  # 排除我创建的群这样的元素
+            _text = get_view_text(gv.children[0])
+            if _text:  # 排除我创建的群这样的元素
+                logger.debug("skip: %s", to_str(_text))
                 continue
             name = get_view_text(gv.children[1].children[2].children[1])
             pos = gv.top + gv.height / 2 + 182
+            logger.debug("find troop: %s-->%s %s %s", to_str(name),
+                         to_str(gv.top), to_str(gv.height), to_str(pos))
             if pos <= 185:
                 logger.debug("DANGER POS: %s", pos)
                 continue
@@ -357,10 +377,12 @@ class Agent(object):
     def drag_one_screen(self, down):
         if down:
             logger.debug("drag one screen down")
-            self.device.drag(DRAG_POS_DOWN, DRAG_POS_UP, 0.2, 1)
+            self.device.press('KEYCODE_PAGE_DOWN')
+            #self.device.drag(DRAG_POS_DOWN, DRAG_POS_UP, 0.2, 1)
         else:
             logger.debug("drag one screen up")
-            self.device.drag(DRAG_POS_UP, DRAG_POS_DOWN, 0.2, 1)
+            self.device.press('KEYCODE_PAGE_UP')
+            #self.device.drag(DRAG_POS_UP, DRAG_POS_DOWN, 0.2, 1)
 
     def drag(self, pos):
         if pos == 0:
@@ -370,6 +392,10 @@ class Agent(object):
         for i in xrange(abs(pos)):
             self.drag_one_screen(down)
             time.sleep(0.5)
+
+    def set_focus(self):
+        return
+        self.drag(1)
 
     def send_group_msg(self, msg, validate=True):
         logger.info('send msg: %s', to_str(msg))
@@ -383,22 +409,30 @@ class Agent(object):
 
         self.long_touch_pixel(*BUTTON_LOCATION['INPUT'])
         time.sleep(0.2)
-        self.touch_pixel(*BUTTON_LOCATION['PASTE'])
+        self.touch_button('PASTE')
         logger.debug('send_group_msg click PASTE done')
 
         if validate:
             #验证消息
             logger.debug('validate msg begin')
             msg_to_send = self.get_view_text_by_id('id/input')
+            if not msg_to_send:  # 消息没粘贴上或者语言输入打开了
+                send_btn = self.get_view_text_by_id('id/fun_btn')
+                if str_equal("切换到文字输入", send_btn):
+                    self.touch_button('REC_SEND')
+                    time.sleep(0.5)
+                    self.touch_button('MSG_SPACE')
+                return 2
+            #消息框有内容了，验证一下对不对
             if not str_equal(msg_to_send, msg):
                 logger.error("要发送的消息[%s]和输入框中的消息[%s]不一致",
                              to_str(msg), to_str(msg_to_send))
-                if msg_to_send:  # 消息没发送要把残留的消息删掉
-                    self.delete_msg(len(msg_to_send))
+                #消息没发送要把残留的消息删掉
+                self.delete_msg(len(msg_to_send))
                 return 1
             logger.debug('validate msg done')
 
-        self.touch_pixel(*BUTTON_LOCATION['SEND'])
+        self.touch_button('SEND')
         return 0
 
     def delete_msg(self, length):
@@ -577,12 +611,20 @@ class Agent(object):
             logger.debug("current screen: %s", cs)
             if cs == screen:
                 logger.info("进入指定页面: %s", to_str(cs))
+                if cs in SCREENS_NEED_FOCUS and i != 0:
+                    self.set_focus()
                 return True
-            action, except_screen = SCREEN_SWITCH_ACTION[screen][cs]
+            action, expect_screen = SCREEN_SWITCH_ACTION[screen][cs]
             logger.debug("do_action: %s", action)
             self.do_action(action, gid)
-            if not self.watch_screen_switch(cs, except_screen):
-                return False
+            if expect_screen:
+                if not self.watch_screen_switch(cs, expect_screen):
+                    return False
+            else:
+                #有些按钮点完不一定跳到什么界面，不固定的，
+                #比如群通知界面，点完之后是回到原界面，原界面是不固定的
+                #直接进入下次循环就行
+                pass
         return False
 
     def goto_device_home(self):
@@ -603,6 +645,10 @@ if __name__ == "__main__":
     #print agent.goto('CONTACTS')
     #print agent.goto_device_home()
     agent.gen_groups()
+    #for i in xrange(10):
+    #    print i
+    #    agent.drag(1)
+    #    time.sleep(10)
     #suc_num = 0
     #fail_num = 0
     #gids = agent.groups.keys()
