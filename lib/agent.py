@@ -40,7 +40,7 @@ BUTTON_LOCATION = {
     'GROUPS': (300, 230),
     'MY_GROUPS': (100, 150),  # 我的群
     'GROUP_INPUT': (130, 710),
-    'NOTICE_ACCEPT': (240, 650),
+    'NOTICE_ACCEPT': (240, 730),
 
     'QQ_NAME': (40, 75),
     'QQ_START': (50, 750),
@@ -204,10 +204,16 @@ class Agent(object):
             return
         if not self.goto('GROUP_LIST'):
             return
-        for i in xrange(15):
+        last_end_group_name = ""
+        for i in xrange(20):
             if i != 0:
                 self.drag(1)
             groups = self.extract_groups()
+            if not groups:
+                continue
+            if str_equal(last_end_group_name, groups[-1][0]):
+                logger.info("群列表已到底部，扫描完毕")
+                break
             self.walk_through_groups(i, groups)
 
     def walk_through_groups(self, drag, groups):
