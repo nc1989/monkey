@@ -4,16 +4,16 @@ import os
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
+ANDROID_VIEW_CLIENT_HOME = os.environ['ANDROID_VIEW_CLIENT_HOME']
+sys.path.append(ANDROID_VIEW_CLIENT_HOME + '/src')
+from com.dtmilano.android.viewclient import ViewClient, View
+
 PWD = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.abspath(os.path.join(PWD, "../")))
 jython_lib = '/home/chris/jython2.5.3/Lib'
 sys.path.append("%s/site-packages/simplejson-3.6.3-py2.5.egg" % jython_lib)
 sys.path.append('/Users/zhaoqifa/tools/jython2.5.3/Lib/site-packages/simplejson-3.6.5-py2.5.egg/')
 
-ANDROID_VIEW_CLIENT_HOME = os.environ['ANDROID_VIEW_CLIENT_HOME']
-sys.path.append(ANDROID_VIEW_CLIENT_HOME + '/src')
-
-from com.dtmilano.android.viewclient import ViewClient, View
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 from com.android.monkeyrunner.easy import EasyMonkeyDevice, By
 from com.android.chimpchat.hierarchyviewer import HierarchyViewer
@@ -396,6 +396,7 @@ class Agent(object):
             # 目前用不到消息那一栏，所以每次到这个activity的时候，点一下联系人
             # 然后汇报位置为CONTACTS
             self.touch_button('MID_DOWN')
+            time.sleep(0.5)
             return 'CONTACTS'
 
     def touch_pixel(self, x, y):

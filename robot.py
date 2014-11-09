@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from agent import Agent
 import os
 import sys
 reload(sys)
@@ -7,7 +8,6 @@ sys.setdefaultencoding("utf-8")
 import time
 from threading import Thread
 from optparse import OptionParser
-from lib.agent import Agent
 from lib.tools import url_get, url_post, get_local_ip
 import logging
 LOG_FORMAT = '%(asctime)s %(name)-5s %(levelname)-6s> %(message)s'
