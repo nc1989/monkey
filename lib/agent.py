@@ -180,7 +180,6 @@ class Agent(object):
         self.device_id = device_id
         logger.info('connect to adb device')
         self.device = MonkeyRunner.waitForConnection(5, self.device_id)
-        self.vc = ViewClient(device=self.device, serialno=self.device_id)
         logger.info('connect to adb device done')
         #self.easy_device = EasyMonkeyDevice(self.device)
         self.groups = {}
@@ -229,7 +228,8 @@ class Agent(object):
             if not groups:
                 continue
             if str_equal(last_end_group_name, groups[-1][0]):
-                logger.info("群列表已到底部，扫描完毕")
+                logger.info("群列表已到底部，扫描完毕，一共发现%s个群",
+                            to_str(len(self.groups)))
                 break
             last_end_group_name = groups[-1][0]
             self.walk_through_groups(i, groups)
@@ -247,7 +247,8 @@ class Agent(object):
 
     def extract_groups(self):
         #troop_list = self.retry_get_view_by_id('id/qb_troop_list_view')
-        troop_list = self.vc.findViewById('id/qb_troop_list_view')
+        vc = ViewClient(device=self.device, serialno=self.device_id)
+        troop_list = vc.findViewById('id/qb_troop_list_view')
         if troop_list is None:
             logger.error("提取群列表元素失败，已重试!")
             return []
