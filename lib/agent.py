@@ -50,6 +50,9 @@ BUTTON_LOCATION = {
     'SEND': (430, 760),
     'REC_SEND': (428, 467),  # 录音界面出来时，SEND按钮的位置
     'MSG_SPACE': (240, 420),  # 录音界面出来后，点击消息的空白位置
+    'GROUP_SEARCH': (240, 220),
+    'SEARCH_RESULT': (240, 150),
+    'SEARCH_CANCEL': (425, 72),
 }
 
 HORIZON_MID = 240
@@ -67,7 +70,7 @@ SCREENS = {
     'TroopNewcomerNoticeActivity': 'GROUP_NOTICE',
 }
 
-SCREENS_NEED_FOCUS = ('GROUP_LIST', 'GROUP_CHAT')
+SCREENS_NEED_FOCUS = ('GROUP_CHAT', 'GROUP_LIST')
 
 SCREEN_SWITCH_ACTION = {
     'MESSAGES': {
@@ -409,17 +412,18 @@ class Agent(object):
             self.device.press('KEYCODE_PAGE_UP')
             #self.device.drag(DRAG_POS_UP, DRAG_POS_DOWN, 0.2, 1)
 
-    def drag(self, pos):
+    def drag(self, pos, log=True):
         if pos == 0:
             return
-        logger.info("drag screen: %s", pos)
+        if log:
+            logger.info("drag screen: %s", pos)
         down = pos > 0
         for i in xrange(abs(pos)):
             self.drag_one_screen(down)
             time.sleep(0.5)
 
     def set_focus(self):
-        self.drag(1)
+        self.drag(1, False)
 
     def send_group_msg(self, msg, validate=True):
         logger.info('send msg: %s', to_str(msg))
@@ -566,6 +570,54 @@ class Agent(object):
                      to_str(gid), to_str(gname))
         return 1
 
+    def enter_group_by_search(self, gid):
+        self.touch_button('GROUP_SEARCH')
+        time.sleep(0.5)
+        self.device.type(gid)
+        time.sleep(0.5)
+        search_result = self.retry_get_view_by_id('id/tv_name')
+
+        if not search_result:  # 没有搜索到，点击取消
+            logger.error("搜索结果查找id/tv_name失败，可能需要取消搜索")
+            search_cancel = self.retry_get_view_by_id('id/btn_cancel_search')
+            if search_cancel:
+                logger.info("取消搜索操作")
+                self.touch_button("SEARCH_CANCEL")
+            return False
+        # 搜索到结果了，验证一下id对不对，结果示例: 北航人在点评(71771261)
+        _text = get_view_text(search_result)
+        start, end = _text.find('('), _text.find(')')
+        if start < 0 or end < 0:
+            logger.error("搜索结果[%s]解析群号失败", to_str(_text))
+            return False
+        group_id = _text[start + 1:end]
+        if not str_equal(group_id, gid):
+            logger.error("搜索结果的群号[%s]和需要进的群号[%s]不一致",
+                         to_str(group_id), to_str(gid))
+            return False
+
+        #都对了，进群吧
+        if not self.switch_by_pixel("GROUP_LIST", "GROUP_CHAT",
+                                    *BUTTON_LOCATION["SEARCH_RESULT"]):
+            logger.error("点击搜索结果进群失败!!!!")
+            return False
+        return True
+
+    def enter_group_v2(self, gid):
+        if gid not in self.groups:
+            logger.error("群列表中没有该群[%s]的登记信息，不能进", to_str(gid))
+            return 1  # 暂时不接受进入无记录群的需求
+        gname = self.groups[gid].name
+        logger.info("准备进入群[%s,%s]", to_str(gid), to_str(gname))
+        if not self.goto('CONTACTS'):
+            return 2
+        if not self.goto('GROUP_LIST'):
+            return 3
+        if not self.enter_group_by_search(gid):
+            return 4
+        logger.info("进群[%s,%s]成功", to_str(gid), to_str(gname))
+        return 0
+
     def enter_group(self, gid):
         if gid not in self.groups:
             logger.error("群列表中没有该群[%s]的登记信息，不能进", to_str(gid))
@@ -591,7 +643,7 @@ class Agent(object):
         for i in xrange(50):
             cs = self.current_screen()
             if expect_screen == cs:
-                logger.info('screen switch success!')
+                logger.info('screen switch succeed!')
                 return True
             time.sleep(0.2)
         logger.error('screen switch timeout!')
@@ -600,12 +652,11 @@ class Agent(object):
     def watch_screen_switch(self, old_screen, expect_screen):
         # 等待模拟器跳转到某个页面
         # 如果超过10s没到指定页面或者跳转到了错误页面，返回False
-        logger.info('watch screen switch from %s to %s',
-                    old_screen, expect_screen)
+        logger.info('screen switch from %s to %s', old_screen, expect_screen)
         for i in xrange(50):
             cs = self.current_screen()
             if expect_screen == cs:
-                logger.info('screen switch success!')
+                logger.info('screen switch succeed!')
                 return True
             elif cs != old_screen:
                 # 没有跳转到特定页面不是由于卡顿造成的
@@ -636,7 +687,7 @@ class Agent(object):
                 continue
             logger.debug("current screen: %s", cs)
             if cs == screen:
-                logger.info("进入指定页面: %s", to_str(cs))
+                logger.info("goto: %s succeed!", cs)
                 if cs in SCREENS_NEED_FOCUS and i != 0:
                     self.set_focus()
                 return True
@@ -645,12 +696,21 @@ class Agent(object):
             self.do_action(action, gid)
             if expect_screen:
                 if not self.watch_screen_switch(cs, expect_screen):
+                    #有可能是因为进入一些异常界面，自我救赎吧亲
+                    self.rescure()
                     return False
             else:
                 #有些按钮点完不一定跳到什么界面，不固定的，
                 #比如群通知界面，点完之后是回到原界面，原界面是不固定的
                 #直接进入下次循环就行
                 pass
+        return False
+
+    def rescure(self):
+        search_cancel = self.retry_get_view_by_id('id/btn_cancel_search')
+        if search_cancel:
+            logger.info("取消搜索操作")
+            self.touch_button("SEARCH_CANCEL")
         return False
 
     def goto_device_home(self):
@@ -669,7 +729,7 @@ def test_check_group(qq, device):
     gids = agent.groups.keys()
     for gid in gids:
         try:
-            ret = agent.enter_group(gid)
+            ret = agent.enter_group_v2(gid)
         except:
             ret = 1
         if ret == 0:
@@ -677,6 +737,11 @@ def test_check_group(qq, device):
         else:
             fail_num += 1
     print "suc_num=%d, fail_num=%d" % (suc_num, fail_num)
+
+
+def test(qq, device):
+    agent = Agent(qq, device)
+    agent.enter_group_v2("170172258")
 
 
 if __name__ == "__main__":
@@ -693,4 +758,4 @@ if __name__ == "__main__":
     elif test_action == "gen_group":
         test_gen_group(qq, device)
     else:
-        pass
+        test(qq, device)

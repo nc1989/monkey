@@ -133,7 +133,7 @@ class Robot(object):
         gid = data.get('group', None)
         if not gid:
             return -1, "group not found"
-        return self.agent.enter_group(gid)
+        return self.agent.enter_group_v2(gid)
 
     def send_group_msg(self, data):
         group = data.get('group', None)
