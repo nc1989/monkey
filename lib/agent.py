@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
-from com.android.monkeyrunner.easy import EasyMonkeyDevice, By
-from com.android.chimpchat.hierarchyviewer import HierarchyViewer
 import os
 import sys
 reload(sys)
@@ -12,6 +9,14 @@ sys.path.append(os.path.abspath(os.path.join(PWD, "../")))
 jython_lib = '/home/chris/jython2.5.3/Lib'
 sys.path.append("%s/site-packages/simplejson-3.6.3-py2.5.egg" % jython_lib)
 sys.path.append('/Users/zhaoqifa/tools/jython2.5.3/Lib/site-packages/simplejson-3.6.5-py2.5.egg/')
+
+ANDROID_VIEW_CLIENT_HOME = os.environ['ANDROID_VIEW_CLIENT_HOME']
+sys.path.append(ANDROID_VIEW_CLIENT_HOME + '/src')
+
+from com.dtmilano.android.viewclient import ViewClient, View
+from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
+from com.android.monkeyrunner.easy import EasyMonkeyDevice, By
+from com.android.chimpchat.hierarchyviewer import HierarchyViewer
 
 
 import time
@@ -174,7 +179,8 @@ class Agent(object):
         self.qq = qq
         self.device_id = device_id
         logger.info('connect to adb device')
-        self.device = MonkeyRunner.waitForConnection(5, device_id)
+        self.device = MonkeyRunner.waitForConnection(5, self.device_id)
+        self.vc = ViewClient(device=self.device, serialno=self.device_id)
         logger.info('connect to adb device done')
         #self.easy_device = EasyMonkeyDevice(self.device)
         self.groups = {}
@@ -240,21 +246,26 @@ class Agent(object):
             self.goto('GROUP_LIST')
 
     def extract_groups(self):
-        troop_list = self.retry_get_view_by_id('id/qb_troop_list_view')
+        #troop_list = self.retry_get_view_by_id('id/qb_troop_list_view')
+        troop_list = self.vc.findViewById('id/qb_troop_list_view')
         if troop_list is None:
             logger.error("提取群列表元素失败，已重试!")
             return []
         ret = []
         logger.debug("troop_list children size: %s", len(troop_list.children))
         for gv in troop_list.children:
-            _text = get_view_text(gv.children[0])
+            #_text = get_view_text(gv.children[0])
+            _text = gv.children[0].getText()
             if _text:  # 排除我创建的群这样的元素
                 logger.debug("skip: %s", to_str(_text))
                 continue
-            name = get_view_text(gv.children[1].children[2].children[1])
-            pos = gv.top + gv.height / 2 + 182
+            #name = get_view_text(gv.children[1].children[2].children[1])
+            name = gv.children[1].children[2].children[1].getText()
+            top, height = gv.getY(), gv.getHeight()
+            #pos = gv.top + gv.height / 2 + 182
+            pos = top + height / 2 + 182
             logger.debug("find troop: %s-->%s %s %s", to_str(name),
-                         to_str(gv.top), to_str(gv.height), to_str(pos))
+                         to_str(top), to_str(height), to_str(pos))
             if pos <= 185:
                 logger.debug("DANGER POS: %s", pos)
                 continue
