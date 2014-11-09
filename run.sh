@@ -4,10 +4,16 @@ qq="2902424837"
 device="emulator-5554"
 
 
-function start_agent
+function start_agent_check_group
 {
     echo "start agent ..."
-    monkeyrunner lib/agent.py --qq ${qq} --device ${device}
+    monkeyrunner lib/agent.py --qq ${qq} --device ${device} --test check_group
+}
+
+function start_agent_gen_group
+{
+    echo "start agent ..."
+    monkeyrunner lib/agent.py --qq ${qq} --device ${device} --test gen_group
 }
 
 function start_robot
@@ -28,8 +34,10 @@ function main
     back_up
     if [[ ${model} == "robot" ]];then
         start_robot
+    elif [[ ${model} == "check" ]];then
+        start_agent_check_group
     else
-        start_agent
+        start_agent_gen_group
     fi
 }
 

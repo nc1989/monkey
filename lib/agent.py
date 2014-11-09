@@ -657,40 +657,40 @@ class Agent(object):
         self.device.press('KEYCODE_HOME', MonkeyDevice.DOWN_AND_UP, '')
 
 
+def test_gen_group(qq, device):
+    agent = Agent(qq, device)
+    agent.gen_groups()
+
+
+def test_check_group(qq, device):
+    agent = Agent(qq, device)
+    suc_num = 0
+    fail_num = 0
+    gids = agent.groups.keys()
+    for gid in gids:
+        try:
+            ret = agent.enter_group(gid)
+        except:
+            ret = 1
+        if ret == 0:
+            suc_num += 1
+        else:
+            fail_num += 1
+    print "suc_num=%d, fail_num=%d" % (suc_num, fail_num)
+
+
 if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option("--qq", dest="qq")
     parser.add_option("--device", dest="device")
+    parser.add_option("--test", dest="test_action")
     (options, args) = parser.parse_args()
     qq = options.qq
     device = options.device
-
-    agent = Agent(qq, device)
-    #agent.dump_groups()
-    #print agent.goto('GROUP_LIST')
-    #print agent.goto('CONTACTS')
-    #print agent.goto_device_home()
-    agent.gen_groups()
-    #for i in xrange(10):
-    #    print i
-    #    agent.drag(1)
-    #    time.sleep(10)
-    #suc_num = 0
-    #fail_num = 0
-    #gids = agent.groups.keys()
-    #for gid in gids:
-    #    try:
-    #        ret = agent.enter_group(gid)
-    #    except:
-    #        ret = 1
-    #    if ret == 0:
-    #        suc_num += 1
-    #    else:
-    #        fail_num += 1
-    #print "suc_num=%d, fail_num=%d" % (suc_num, fail_num)
-
-    #for i in xrange(50):
-    #    print agent.send_group_msg("天命，哈哈哈%s" % i, False)
-    #print agent.check_group_msg('不要打岔')
-    #print agent.check_group_msg('挺实惠的啊')
-    #print agent.check_group_msg('挺实惠的啊123123')
+    test_action = options.test_action
+    if test_action == "check_group":
+        test_check_group(qq, device)
+    elif test_action == "gen_group":
+        test_gen_group(qq, device)
+    else:
+        pass
