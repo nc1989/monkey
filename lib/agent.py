@@ -177,6 +177,14 @@ class Agent(object):
         self.groups = {}
         self.load_groups()
 
+    def self_check(self):
+        logger.info("自检开始...")
+        if not self.goto('CONTACTS'):
+            return False
+        if not self.goto('GROUP_LIST'):
+            return False
+        return True
+
     def load_groups(self):
         group_list_file = "grouplist/%s.grouplist" % self.qq
         if not os.path.exists(group_list_file):
