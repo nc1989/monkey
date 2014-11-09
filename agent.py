@@ -720,11 +720,15 @@ class Agent(object):
         return False
 
     def rescure(self):
+        cs = self.current_screen()
+        if not cs:
+            return
+        if cs != "GROUP_LIST":
+            return
         search_cancel = self.retry_get_view_by_id('id/btn_cancel_search')
         if search_cancel:
             logger.info("取消搜索操作")
             self.touch_button("SEARCH_CANCEL")
-        return False
 
     def goto_device_home(self):
         self.device.press('KEYCODE_HOME', MonkeyDevice.DOWN_AND_UP, '')
