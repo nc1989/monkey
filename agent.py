@@ -726,7 +726,7 @@ class Agent(object):
         if cs != "GROUP_LIST":
             return
         search_cancel = self.retry_get_view_by_id('id/btn_cancel_search')
-        if search_cancel:
+        if search_cancel and search_cancel.left > HORIZON_MID:
             logger.info("取消搜索操作")
             self.touch_button("SEARCH_CANCEL")
 
