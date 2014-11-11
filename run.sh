@@ -1,19 +1,23 @@
 #!/bin/bash
 
-qq="2902424837"
-device="emulator-5554"
-
+. ./config.sh
 
 function start_agent_check_group
 {
     echo "start agent ..."
-    monkeyrunner lib/agent.py --qq ${qq} --device ${device} --test check_group
+    monkeyrunner agent.py --qq ${qq} --device ${device} --test check_group
 }
 
 function start_agent_gen_group
 {
     echo "start agent ..."
-    monkeyrunner lib/agent.py --qq ${qq} --device ${device} --test gen_group
+    monkeyrunner agent.py --qq ${qq} --device ${device} --test gen_group
+}
+
+function start_agent_test
+{
+    echo "start agent ..."
+    monkeyrunner agent.py --qq ${qq} --device ${device} --test test
 }
 
 function start_robot
@@ -36,8 +40,10 @@ function main
         start_robot
     elif [[ ${model} == "check" ]];then
         start_agent_check_group
-    else
+    elif [[ ${model}} == "group" ]];then
         start_agent_gen_group
+    else
+        start_agent_test
     fi
 }
 

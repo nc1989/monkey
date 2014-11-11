@@ -425,6 +425,9 @@ class Agent(object):
             self.device.press('KEYCODE_PAGE_UP')
             #self.device.drag(DRAG_POS_UP, DRAG_POS_DOWN, 0.2, 1)
 
+    def move_to_screen_end(self):
+        self.device.press('KEYCODE_MOVE_END')
+
     def drag(self, pos, log=True):
         if pos == 0:
             return
@@ -496,6 +499,7 @@ class Agent(object):
                 if str_equal(msg, target):
                     logger.info("target msg[%s] found", to_str(target))
                     return {"drag": i, "sender": sender}
+        self.move_to_screen_end()
         logger.info("target msg[%s] not found in 3 screens", to_str(target))
         return 1
 
@@ -758,7 +762,7 @@ def test_check_group(qq, device):
 
 def test(qq, device):
     agent = Agent(qq, device)
-    agent.enter_group_v2("170172258")
+    print agent.check_group_msg("AAAA")
 
 
 if __name__ == "__main__":
