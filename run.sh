@@ -31,7 +31,7 @@ function main
         start_robot
     elif [[ ${model} == "check" ]];then
         start_agent_check_group
-    elif [[ ${model}} == "group" ]];then
+    elif [[ ${model} == "group" ]];then
         start_agent_gen_group
     else
         start_agent_test
