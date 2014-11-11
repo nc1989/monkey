@@ -767,12 +767,19 @@ def test(qq, device):
 
 if __name__ == "__main__":
     parser = OptionParser()
-    parser.add_option("--qq", dest="qq")
-    parser.add_option("--device", dest="device")
     parser.add_option("--test", dest="test_action")
     (options, args) = parser.parse_args()
-    qq = options.qq
-    device = options.device
+
+    config_file = "./config.json"
+    if not os.path.isfile(config_file):
+        logger.error("config file[%s] not exist!", config_file)
+        sys.exit(1)
+    f = open(config_file, "r")
+    config = json.loads(f.read().strip())
+    f.close()
+    device = config["device"]
+    qq = config["qq"]
+
     test_action = options.test_action
     if test_action == "check_group":
         test_check_group(qq, device)

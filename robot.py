@@ -69,18 +69,18 @@ def net_command():
 
 
 class Robot(object):
-    def __init__(self, qq, device):
-        self.qq = qq
+    def __init__(self):
         config = self.load_config()
+        self.qq = config["qq"]
+        self.device_id = config["device"]
         self.local_ip = config["ip"]
         self.robot_server = config["server"]
-        self.nickname = config[qq]["nickname"]
-        self.port = config[qq]["port"]
-        self.device_id = device
+        self.nickname = config["nickname"]
+        self.port = config["port"]
         # 以上这几步不做异常检查了，如果配置有误直接退出
         #Step 1. 创建agent，用于操作模拟器
         logger.info("启动Agent")
-        self.agent = Agent(qq, self.device_id)
+        self.agent = Agent(self.qq, self.device_id)
         if not self.agent.self_check():
             sys.exit(1)
 
@@ -99,14 +99,14 @@ class Robot(object):
             logger.info("job running...")
 
     def load_config(self):
-        qqlist_file = "./qqlist/qqlist.json"
-        if not os.path.isfile(qqlist_file):
-            logger.error("qqlist file[%s] not exist!", qqlist_file)
+        config_file = "./config.json"
+        if not os.path.isfile(config_file):
+            logger.error("config file[%s] not exist!", config_file)
             sys.exit(1)
-        f = open(qqlist_file, "r")
-        qqlist = json.loads(f.read().strip())
+        f = open(config_file, "r")
+        config = json.loads(f.read().strip())
         f.close()
-        return qqlist
+        return config
 
     def register(self):
         logger.info("register robot to: %s", self.robot_server)
@@ -151,12 +151,12 @@ class Robot(object):
 
 if __name__ == '__main__':
     parser = OptionParser()
-    parser.add_option("--qq", dest="qq")
-    parser.add_option("--device", dest="device")
-    (options, args) = parser.parse_args()
-    qq = options.qq
-    device = options.device
+    #parser.add_option("--qq", dest="qq")
+    #parser.add_option("--device", dest="device")
+    #(options, args) = parser.parse_args()
+    #qq = options.qq
+    #device = options.device
 
     global LISTNER
-    LISTNER = Robot(qq, device)
+    LISTNER = Robot()
     run(app, host='0.0.0.0', port=LISTNER.port)
