@@ -234,8 +234,17 @@ class Agent(object):
             last_end_group_name = groups[-1][0]
             self.walk_through_groups(i, groups)
 
+    def group_in_list(self, gname):
+        for g in self.groups.itervalues():
+            if str_equal(g.name, gname):
+                return True
+        return False
+
     def walk_through_groups(self, drag, groups):
         for name, pos in groups:
+            if self.group_in_list(name):
+                logger.info("group: %s in list, skip", to_str(name))
+                continue
             logger.info("enter: %s", to_str(name))
             if not self.switch_by_pixel('GROUP_LIST', 'GROUP_CHAT',
                                         HORIZON_MID, pos):
