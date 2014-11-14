@@ -1,0 +1,157 @@
+{
+    "130224460": {
+        "UILocation": 377,
+        "drag": 12,
+        "groupName": "\u9752\u5c9b\u540c\u57ce"
+    },
+    "139713631": {
+        "UILocation": 533,
+        "drag": 3,
+        "groupName": "\u9752\u5c9b\u805a\u4f1a\u7fa4"
+    },
+    "140677522": {
+        "UILocation": 299,
+        "drag": 12,
+        "groupName": "\u9752\u5c9b\u7f8e\u98df\u65c5\u6e38\u4ff1\u4e50\u90e8"
+    },
+    "151391230": {
+        "UILocation": 377,
+        "drag": 10,
+        "groupName": "\u9d84\u2640\u7f18\u6765\u4f60\u5728\u2642\u4ea4\u53cb\u7fa4"
+    },
+    "156112393": {
+        "UILocation": 533,
+        "drag": 11,
+        "groupName": "\u9752\u5c9b\u805a\u4f1a\u7ea6\u4f1a\u604b\u7231"
+    },
+    "160640202": {
+        "UILocation": 221,
+        "drag": 3,
+        "groupName": "\u7f8e\u98df\u4ff1\u4e50\u90e8"
+    },
+    "166569611": {
+        "UILocation": 611,
+        "drag": 10,
+        "groupName": "\u4e00\u8d77\u805a\u4f1a\u5427\u603b\u7fa4"
+    },
+    "172103430": {
+        "UILocation": 689,
+        "drag": 10,
+        "groupName": "\u4e00\u8d77K\u6b4c\u5427"
+    },
+    "203242330": {
+        "UILocation": 299,
+        "drag": 11,
+        "groupName": "\u265a    K\u6b4c\u4ea4\u53cb\u2121 \u2460\u7fa4"
+    },
+    "203984949": {
+        "UILocation": 455,
+        "drag": 11,
+        "groupName": "\u9752\u5c9b\u4ea4\u53cb\u804a\u5929\u805a\u4f1a\u7fa4"
+    },
+    "205326966": {
+        "UILocation": 377,
+        "drag": 11,
+        "groupName": "\u9752\u5c9b70.80.\u5c0f\u4f17\u805a\u4f1a\u7fa4"
+    },
+    "218903040": {
+        "UILocation": 221,
+        "drag": 12,
+        "groupName": "\u9752\u5c9b\u7f8e\u98df\u70d8\u7119\u5403\u8d27\u7fa4"
+    },
+    "238215465": {
+        "UILocation": 649,
+        "drag": 2,
+        "groupName": "K\u6b4c\u5a31\u4e50"
+    },
+    "251936140": {
+        "UILocation": 221,
+        "drag": 11,
+        "groupName": "\uff08\u9752\u5c9b\uff09\u805a\u4f1a\u96c6\u7ed3\u53f7"
+    },
+    "252168297": {
+        "UILocation": 689,
+        "drag": 3,
+        "groupName": "\u9752\u5c9bK\u6b4c\u7fa4"
+    },
+    "262155890": {
+        "UILocation": 611,
+        "drag": 11,
+        "groupName": "\u9752\u5c9b\u804a\u5929\u805a\u4f1a\u4ea4\u53cb\u7fa4"
+    },
+    "263685012": {
+        "UILocation": 689,
+        "drag": 11,
+        "groupName": "\u9752\u5c9b\u804a\u5929\u805a\u4f1a\u7fa4"
+    },
+    "2644092": {
+        "UILocation": 221,
+        "drag": 4,
+        "groupName": "\u9752\u5c9bK\u6b4c\u4f11\u95f2\u7fa4"
+    },
+    "29295332": {
+        "UILocation": 299,
+        "drag": 10,
+        "groupName": "\u9752\u5c9b\u7269\u8bed\u250a\u7f8e\u4e3d\u4eba\u751f"
+    },
+    "3000315": {
+        "UILocation": 533,
+        "drag": 12,
+        "groupName": "\u5e78\u798f\u306e\u5403\u8d27\u7fa4\u273f\u767b\u5c71\u7fa4"
+    },
+    "316161507": {
+        "UILocation": 611,
+        "drag": 12,
+        "groupName": "0532\u804a\u5427\u266b\u4e0a\u86e4\u870a\uff0e\u00b7\u00b0"
+    },
+    "33352671": {
+        "UILocation": 455,
+        "drag": 3,
+        "groupName": "\u9752\u5c9b\u805a\u4f1a\u4ea4\u53cb"
+    },
+    "344693904": {
+        "UILocation": 571,
+        "drag": 2,
+        "groupName": "\u4ea4\u53cb  \u5a31\u4e50\u805a\u4f1a\u62c9\u5471\u7fa4"
+    },
+    "366157158": {
+        "UILocation": 611,
+        "drag": 3,
+        "groupName": "\u9752\u5c9bk\u6b4c\u7fa4"
+    },
+    "367315905": {
+        "UILocation": 727,
+        "drag": 2,
+        "groupName": "\u84dd\u5929K\u6b4c\u4ff1\u4e50\u90e8"
+    },
+    "383463437": {
+        "UILocation": 377,
+        "drag": 3,
+        "groupName": "\u9752\u5c9b\u4ea4\u53cb\u4f11\u95f2\u9601"
+    },
+    "398736125": {
+        "UILocation": 533,
+        "drag": 10,
+        "groupName": "\u5c0f\u9ec4\u4eba\u95f9\u7ffb\u5929"
+    },
+    "51022790": {
+        "UILocation": 299,
+        "drag": 3,
+        "groupName": "\u9752\u5c9b80.90\u805a\u4f1a\u4ea4\u53cb\u00a0\u00a0-3-"
+    },
+    "77274654": {
+        "UILocation": 455,
+        "drag": 4,
+        "groupName": "\u6211\u662fK\u6b4c\u738b\uff01"
+    },
+    "88988370": {
+        "UILocation": 767,
+        "drag": 12,
+        "groupName": "\u3006\u309b\u4e36\u9752\u5c9b\u540c\u57ce\u4ea4\u53cb."
+    },
+    "93061719": {
+        "UILocation": 377,
+        "drag": 2,
+        "groupName": "\u9752\u5c9b\u540c\u57ce\u5f81\u5a5a\u624b\u7275\u624b"
+    }
+}
