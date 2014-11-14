@@ -18,7 +18,7 @@ from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 from com.android.monkeyrunner.easy import EasyMonkeyDevice, By
 from com.android.chimpchat.hierarchyviewer import HierarchyViewer
 
-
+import re
 import time
 import logging
 LOG_FORMAT = '%(asctime)s %(name)-5s %(levelname)-6s> %(message)s'
@@ -47,7 +47,7 @@ BUTTON_LOCATION = {
     'GROUP_INPUT': (130, 710),
     'NOTICE_ACCEPT': (240, 730),
 
-    'QQ_NAME': (40, 75),
+    'QQ_NAME': (150, 150),
     'QQ_START': (50, 750),
     'INPUT': (165, 760),
     'INPUT_END': (370, 780),
@@ -73,6 +73,7 @@ SCREENS = {
     'TroopMemberListActivity': 'GROUP_MEMBER',
     'TroopMemberCardActivity': 'GROUP_MEMBER_INFO',
     'TroopNewcomerNoticeActivity': 'GROUP_NOTICE',
+    'FriendProfileCardActivity': 'PROFILE_CARD',
 }
 
 SCREENS_NEED_FOCUS = ('GROUP_CHAT', 'GROUP_LIST')
@@ -749,6 +750,27 @@ class Agent(object):
     def goto_device_home(self):
         self.device.press('KEYCODE_HOME', MonkeyDevice.DOWN_AND_UP, '')
 
+    def get_qq_name_id(self):
+        self.goto('CONTACTS')
+        self.touch_button('LEFT_DOWN')
+        time.sleep(0.5)
+        self.touch_button('LEFT_UP')
+        time.sleep(0.5)
+        self.touch_button('QQ_NAME')
+        time.sleep(0.5)
+        vc = ViewClient(device=self.device, serialno=self.device_id)
+        qq_id = vc.findViewById('id/info').getText()
+        qq_id = re.sub(r'\D', '', qq_id.strip())
+        qq_name_view = self.get_view_by_id('id/common_xlistview').children[0]\
+                    .children[0].children[0].children[0]\
+                    .children[5].children[2].children[0]
+        qq_name = get_view_text(qq_name_view)
+        self.touch_button('LEFT_UP')
+        time.sleep(0.5)
+        self.touch_pixel(410,150)
+        time.sleep(0.5)
+        self.goto('CONTACTS')
+        return qq_id, qq_name
 
 def test_gen_group(qq, device):
     agent = Agent(qq, device)
@@ -776,6 +798,9 @@ def test(qq, device):
     agent = Agent(qq, device)
     print agent.check_group_msg("AAAA")
 
+def test_name_id(qq, device):
+    agent = Agent(qq, device)
+    print agent.get_qq_name_id()
 
 if __name__ == "__main__":
     parser = OptionParser()
