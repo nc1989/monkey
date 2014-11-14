@@ -8,7 +8,7 @@ sys.setdefaultencoding("utf-8")
 import time
 from threading import Thread
 from optparse import OptionParser
-from lib.tools import url_get, url_post, get_local_ip
+from lib.tools import url_get, url_post, to_str
 import logging
 LOG_FORMAT = '%(asctime)s %(name)-5s %(levelname)-6s> %(message)s'
 #logging.basicConfig(datefmt='%m-%d %H:%M:%S', level=logging.DEBUG,
@@ -69,19 +69,18 @@ def net_command():
 
 
 class Robot(object):
-    def __init__(self):
+    def __init__(self, device, port):
         config = self.load_config()
-        self.qq = config["qq"]
-        self.device_id = config["device"]
-        self.local_ip = config["ip"]
         self.robot_server = config["server"]
-        self.nickname = config["nickname"]
-        self.port = config["port"]
+        self.port = port
         # 以上这几步不做异常检查了，如果配置有误直接退出
         #Step 1. 创建agent，用于操作模拟器
         logger.info("启动Agent")
-        self.agent = Agent(self.qq, self.device_id)
-        if not self.agent.self_check():
+        self.agent = Agent(device)
+        self.qq, self.nickname = self.agent.get_qq_name_id()
+        if not self.qq or not self.nickname:
+            logger.error("qq[%s] or nickname[%s] is empty",
+                         to_str(self.qq), to_str(self.nickname))
             sys.exit(1)
 
         #Step 2. 注册到server
@@ -110,14 +109,14 @@ class Robot(object):
 
     def register(self):
         logger.info("register robot to: %s", self.robot_server)
-        command_url = "http://%s:%s/net_command" % (self.local_ip, self.port)
+        #command_url = "http://%s:%s/net_command" % (self.local_ip, self.port)
         groups = [{'groupId': gid, 'groupName': g.name}
                   for gid, g in self.agent.groups.iteritems()]
         data = {
             'cmd': 'register',
             'qq': self.qq,
             'qqName': self.nickname,
-            'url': command_url,
+            'port': self.port,
             'groupList': json.dumps(groups)
         }
         server_url = "http://%s:8001/net_command" % self.robot_server
@@ -126,7 +125,6 @@ class Robot(object):
             logger.info("register robot succeed!")
         else:
             logger.warning("register robot failed!")
-
 
     # 以下是暴露给net_command的API
     def enter_group(self, data):
@@ -151,12 +149,11 @@ class Robot(object):
 
 if __name__ == '__main__':
     parser = OptionParser()
-    #parser.add_option("--qq", dest="qq")
-    #parser.add_option("--device", dest="device")
-    #(options, args) = parser.parse_args()
-    #qq = options.qq
-    #device = options.device
+    parser.add_option("--device", dest="device")
+    (options, args) = parser.parse_args()
+    device = "emulator-%s" % options.device
+    port = int(options.device) % 100 + 8000
 
     global LISTNER
-    LISTNER = Robot()
+    LISTNER = Robot(device, port)
     run(app, host='0.0.0.0', port=LISTNER.port)

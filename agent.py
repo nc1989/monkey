@@ -173,26 +173,24 @@ class Group(object):
 
 
 class Agent(object):
-    def __init__(self, qq, device_id):
+    def __init__(self, device):
         logging.basicConfig(datefmt='%m-%d %H:%M:%S', level=logging.DEBUG,
-                            format=LOG_FORMAT, filename='logs/%s.log' % qq,
+                            format=LOG_FORMAT, filename='logs/%s.log' % device,
                             encoding='utf8', filemode='w')
-        self.qq = qq
-        self.device_id = device_id
+        self.device_id = device
         logger.info('connect to adb device')
         self.device = MonkeyRunner.waitForConnection(5, self.device_id)
         logger.info('connect to adb device done')
         #self.easy_device = EasyMonkeyDevice(self.device)
+        self.qq = None
+        self.nickname = None
         self.groups = {}
         self.load_groups()
 
     def self_check(self):
         logger.info("自检开始...")
-        if not self.goto('CONTACTS'):
-            return False
-        if not self.goto('GROUP_LIST'):
-            return False
-        return True
+        #现在不需要切换几个屏幕试试了，只需要看看qq和nickname有没有初始化完成
+        return self.qq and self.nickname
 
     def load_groups(self):
         group_list_file = "grouplist/%s.grouplist" % self.qq
@@ -767,18 +765,20 @@ class Agent(object):
         qq_name = get_view_text(qq_name_view)
         self.touch_button('LEFT_UP')
         time.sleep(0.5)
-        self.touch_pixel(410,150)
+        self.touch_pixel(410, 150)
         time.sleep(0.5)
         self.goto('CONTACTS')
-        return qq_id, qq_name
+        self.qq, self.nickname = int(qq_id), to_str(qq_name)
+        return self.qq, self.nickname
 
-def test_gen_group(qq, device):
-    agent = Agent(qq, device)
+
+def test_gen_group(device):
+    agent = Agent(device)
     agent.gen_groups()
 
 
-def test_check_group(qq, device):
-    agent = Agent(qq, device)
+def test_check_group(device):
+    agent = Agent(device)
     suc_num = 0
     fail_num = 0
     gids = agent.groups.keys()
@@ -794,33 +794,28 @@ def test_check_group(qq, device):
     print "suc_num=%d, fail_num=%d" % (suc_num, fail_num)
 
 
-def test(qq, device):
-    agent = Agent(qq, device)
+def test(device):
+    agent = Agent(device)
     print agent.check_group_msg("AAAA")
 
-def test_name_id(qq, device):
-    agent = Agent(qq, device)
+
+def test_name_id(device):
+    agent = Agent(device)
     print agent.get_qq_name_id()
+
 
 if __name__ == "__main__":
     parser = OptionParser()
+    parser.add_option("--device", dest="device")
     parser.add_option("--test", dest="test_action")
     (options, args) = parser.parse_args()
 
-    config_file = "./config.json"
-    if not os.path.isfile(config_file):
-        logger.error("config file[%s] not exist!", config_file)
-        sys.exit(1)
-    f = open(config_file, "r")
-    config = json.loads(f.read().strip())
-    f.close()
-    device = config["device"]
-    qq = config["qq"]
+    device = "emulator-%s" % options.device
 
     test_action = options.test_action
     if test_action == "check_group":
-        test_check_group(qq, device)
+        test_check_group(device)
     elif test_action == "gen_group":
-        test_gen_group(qq, device)
+        test_gen_group(device)
     else:
-        test(qq, device)
+        test_name_id(device)
