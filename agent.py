@@ -234,8 +234,17 @@ class Agent(object):
             last_end_group_name = groups[-1][0]
             self.walk_through_groups(i, groups)
 
+    def group_in_list(self, gname):
+        for g in self.groups.itervalues():
+            if str_equal(g.name, gname):
+                return True
+        return False
+
     def walk_through_groups(self, drag, groups):
         for name, pos in groups:
+            if self.group_in_list(name):
+                logger.info("group: %s in list, skip", to_str(name))
+                continue
             logger.info("enter: %s", to_str(name))
             if not self.switch_by_pixel('GROUP_LIST', 'GROUP_CHAT',
                                         HORIZON_MID, pos):
@@ -587,6 +596,12 @@ class Agent(object):
                      to_str(gid), to_str(gname))
         return 1
 
+    def cancel_search(self):
+        search_cancel = self.retry_get_view_by_id('id/btn_cancel_search')
+        if search_cancel and search_cancel.left > HORIZON_MID:
+            logger.info("取消搜索操作")
+            self.touch_button("SEARCH_CANCEL")
+
     def enter_group_by_search(self, gid):
         self.touch_button('GROUP_SEARCH')
         time.sleep(0.5)
@@ -596,27 +611,27 @@ class Agent(object):
 
         if not search_result:  # 没有搜索到，点击取消
             logger.error("搜索结果查找id/tv_name失败，可能需要取消搜索")
-            search_cancel = self.retry_get_view_by_id('id/btn_cancel_search')
-            if search_cancel:
-                logger.info("取消搜索操作")
-                self.touch_button("SEARCH_CANCEL")
+            self.cancel_search()
             return False
         # 搜索到结果了，验证一下id对不对，结果示例: 北航人在点评(71771261)
         _text = get_view_text(search_result)
-        start, end = _text.find('('), _text.find(')')
+        start, end = _text.rfind('('), _text.rfind(')')
         if start < 0 or end < 0:
             logger.error("搜索结果[%s]解析群号失败", to_str(_text))
+            self.cancel_search()
             return False
         group_id = _text[start + 1:end]
         if not str_equal(group_id, gid):
             logger.error("搜索结果的群号[%s]和需要进的群号[%s]不一致",
                          to_str(group_id), to_str(gid))
+            self.cancel_search()
             return False
 
         #都对了，进群吧
         if not self.switch_by_pixel("GROUP_LIST", "GROUP_CHAT",
                                     *BUTTON_LOCATION["SEARCH_RESULT"]):
             logger.error("点击搜索结果进群失败!!!!")
+            self.cancel_search()
             return False
         return True
 
@@ -729,10 +744,7 @@ class Agent(object):
             return
         if cs != "GROUP_LIST":
             return
-        search_cancel = self.retry_get_view_by_id('id/btn_cancel_search')
-        if search_cancel and search_cancel.left > HORIZON_MID:
-            logger.info("取消搜索操作")
-            self.touch_button("SEARCH_CANCEL")
+        self.cancel_search()
 
     def goto_device_home(self):
         self.device.press('KEYCODE_HOME', MonkeyDevice.DOWN_AND_UP, '')

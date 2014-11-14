@@ -1,0 +1,82 @@
+{
+    "105473104": {
+        "UILocation": 493,
+        "drag": 1,
+        "groupName": "\u5e7f\u5dde\u6f6e\u6c55\u4eba\u7fbd\u6bdb\u7403\u7fa4"
+    },
+    "110137266": {
+        "UILocation": 527,
+        "drag": 3,
+        "groupName": "\u631a\u7231\u7ca4\u8bed\u6b4c"
+    },
+    "125827155": {
+        "UILocation": 377,
+        "drag": 2,
+        "groupName": "\u884c\u5c38\u8d70\u80892\u7fa4"
+    },
+    "168159071": {
+        "UILocation": 371,
+        "drag": 3,
+        "groupName": "\u5929\u6daf\u6237\u5916\u767b\u5c71\u5f92\u6b65\u7fa4"
+    },
+    "171807535": {
+        "UILocation": 683,
+        "drag": 3,
+        "groupName": "\u5e7f\u5dde\u5927\u5403\u8d27\u7fa4"
+    },
+    "172764525": {
+        "UILocation": 221,
+        "drag": 2,
+        "groupName": "\u5e7f\u5dde\u6e38\u6cf3\u5065\u8eab\u4ea4\u6d41\u7fa4"
+    },
+    "183579393": {
+        "UILocation": 299,
+        "drag": 1,
+        "groupName": "\u300e\u4eba\u4eba\u7f8e\u98df\u4f1a\u300f\u4ea4\u6d41\u7fa4"
+    },
+    "232415060": {
+        "UILocation": 215,
+        "drag": 3,
+        "groupName": "\u5929\u5929\u7231\u6d88\u9664 \u5237\u5206 \u8f85\u52a9"
+    },
+    "243272977": {
+        "UILocation": 727,
+        "drag": 1,
+        "groupName": "\u5e7f\u5dde\u6237\u5916\u5f92\u6b65\u7ea6\u4f34\u7fa4"
+    },
+    "290930462": {
+        "UILocation": 449,
+        "drag": 3,
+        "groupName": "\u7ca4\u8bed\u4ea4\u6d41\u5b66\u4e60-\u91d1\u5409\u5217"
+    },
+    "300243892": {
+        "UILocation": 761,
+        "drag": 3,
+        "groupName": "\u5e7f\u5ddeFB\u5403\u8d27\u65c5\u6e38\u7fa4"
+    },
+    "32713163": {
+        "UILocation": 455,
+        "drag": 2,
+        "groupName": "\u8282\u594f\u5927\u5e08\u25a1\u4f53\u529b\u4e92\u8d603"
+    },
+    "331040652": {
+        "UILocation": 649,
+        "drag": 1,
+        "groupName": "\u5e7f\u5dde\u6237\u5916\u5f92\u6b65\u8349\u5e3d\u7fa4\u2462"
+    },
+    "347294962": {
+        "UILocation": 293,
+        "drag": 3,
+        "groupName": "\u5929\u5929\u7231\u6d88\u9664\u4e92\u52a0\u9001\u5fc3\u7fa4"
+    },
+    "398047468": {
+        "UILocation": 415,
+        "drag": 1,
+        "groupName": "\u5e7f\u5dde\u767d\u4e91\u5c71\u767b\u5c71\u8fd0\u52a8\u7fa4"
+    },
+    "66264961": {
+        "UILocation": 533,
+        "drag": 2,
+        "groupName": "\u5ee3\u5dde\u804a\u5929\u4ea4\u53cb\u7fa4"
+    }
+}
