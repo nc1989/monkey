@@ -1,0 +1,92 @@
+{
+    "109383052": {
+        "UILocation": 221,
+        "drag": 1,
+        "groupName": "\u6df1\u5733\u7f8e\u98df\u7ec4"
+    },
+    "112376753": {
+        "UILocation": 215,
+        "drag": 2,
+        "groupName": "\u5f00\u996d\u5587-\u6df1\u5733\u7f8e\u98df\u8fbe\u4eba"
+    },
+    "117299091": {
+        "UILocation": 377,
+        "drag": 1,
+        "groupName": "0755\u56e2\u8d2d\u7fa41"
+    },
+    "13359961": {
+        "UILocation": 293,
+        "drag": 2,
+        "groupName": "\u6df1\u5733\u8d22\u4f1a\u7fa4"
+    },
+    "16931781": {
+        "UILocation": 299,
+        "drag": 1,
+        "groupName": "\u6df1\u5733\u7fbd\u6bdb\u7403\u4ff1\u4e50\u90e83"
+    },
+    "1862900": {
+        "UILocation": 721,
+        "drag": 0,
+        "groupName": "\u6df1\u5733\u7f8e\u98df\u751f\u6d3b\u7fa4"
+    },
+    "23735765": {
+        "UILocation": 605,
+        "drag": 2,
+        "groupName": "\u6df1\u5733\u7f8e\u98df\u62a5\u62a5"
+    },
+    "26215222": {
+        "UILocation": 643,
+        "drag": 0,
+        "groupName": "\u6df1\u5733\u5988\u5988\u5b9d\u5b9d\u7fa4"
+    },
+    "34705516": {
+        "UILocation": 449,
+        "drag": 2,
+        "groupName": "\u6df1\u5733\u4f1a\u8ba1\u4ea4\u6d41"
+    },
+    "38853803": {
+        "UILocation": 565,
+        "drag": 0,
+        "groupName": "\u6df1\u5733\u61f6\u4eba\u5403\u559d\u7fa4"
+    },
+    "53411274": {
+        "UILocation": 409,
+        "drag": 0,
+        "groupName": "\u6df1\u5733FB\u7fa4"
+    },
+    "58529178": {
+        "UILocation": 455,
+        "drag": 1,
+        "groupName": "\u5317\u4eac\u4eba\u5728\u6df1\u5733--FB\u7fa4"
+    },
+    "61056931": {
+        "UILocation": 683,
+        "drag": 2,
+        "groupName": "\u6df1\u5733\u4e2d\u7ea7\u4f1a\u8ba1\u8003\u8bd5"
+    },
+    "64547761": {
+        "UILocation": 487,
+        "drag": 0,
+        "groupName": "\u6df1\u5733HAPPY,FB\u9ad8\u7ea7\u7fa4"
+    },
+    "65899518": {
+        "UILocation": 611,
+        "drag": 1,
+        "groupName": "KUKU\u4f1a\u8ba1\u7fa4"
+    },
+    "66479205": {
+        "UILocation": 331,
+        "drag": 0,
+        "groupName": "\u6c5f\u897f\u4eba\u5728\u6df1\u5733FB\u65e0\u654c\u7fa4"
+    },
+    "85784080": {
+        "UILocation": 371,
+        "drag": 2,
+        "groupName": "\u6df1\u5733\u8d22\u52a1\u4f1a\u8ba1"
+    },
+    "94932273": {
+        "UILocation": 527,
+        "drag": 2,
+        "groupName": "\u6df1\u5733\u4f1a\u8ba1\u4eba\u5929\u5730"
+    }
+}
