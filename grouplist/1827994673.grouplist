@@ -1,0 +1,72 @@
+{
+    "104324611": {
+        "UILocation": 371,
+        "drag": 2,
+        "groupName": "\u70d8\u7119\u7f8e\u98df\u7231\u597d\u8005"
+    },
+    "109010422": {
+        "UILocation": 493,
+        "drag": 1,
+        "groupName": "\u5e7f\u5dde\u70b9\u8bc4\u5403\u559d\u73a9\u4e501\u7fa4"
+    },
+    "125961036": {
+        "UILocation": 649,
+        "drag": 1,
+        "groupName": "\u5e7f\u5dde\u5b66\u8f66\u4ea4\u6d41\u4e4b\u5f00\u8f66\u4eba"
+    },
+    "170914221": {
+        "UILocation": 415,
+        "drag": 1,
+        "groupName": "\u5e7f\u533b\u5927\u5403\u8d27"
+    },
+    "249600493": {
+        "UILocation": 215,
+        "drag": 2,
+        "groupName": "\u5e7f\u5dde\u5b66\u8f66\u667a\u80fd\u5b66\u8f66"
+    },
+    "26572963": {
+        "UILocation": 293,
+        "drag": 2,
+        "groupName": "\u5e7f\u5dde\u5468\u672b\u5f92\u6b65"
+    },
+    "301237187": {
+        "UILocation": 683,
+        "drag": 2,
+        "groupName": "\u65b0\u5f92\u6b65\u4e3b\u4e49"
+    },
+    "327029591": {
+        "UILocation": 571,
+        "drag": 1,
+        "groupName": "\u5e7f\u5dde\u7267\u91ce\u81ea\u9a7e\u5f99\u6b65\u9732\u8425"
+    },
+    "341985867": {
+        "UILocation": 259,
+        "drag": 1,
+        "groupName": "\u5927\u4f17\u70b9\u8bc4\u7f51-\u4f5b\u5c71"
+    },
+    "385054800": {
+        "UILocation": 605,
+        "drag": 2,
+        "groupName": "\u98df\u5728\u5929\u6daf\u5403\u8d27\u4e4b\u5bb6"
+    },
+    "39723088": {
+        "UILocation": 759,
+        "drag": 0,
+        "groupName": "\u5403\u8d27SYSUers"
+    },
+    "44522379": {
+        "UILocation": 527,
+        "drag": 2,
+        "groupName": "\u5c1a\u8dd1--\u5929\u6cb3\u516c\u56ed\u8dd1\u6b65\u7fa4"
+    },
+    "60181636": {
+        "UILocation": 449,
+        "drag": 2,
+        "groupName": "\u706b\u5f71\u5fcd\u8005 \u6d77\u8d3c\u738b \u6b7b\u795e"
+    },
+    "6685287": {
+        "UILocation": 337,
+        "drag": 1,
+        "groupName": "\u70b9\u8bc4\u7f51\u514d\u8d39\u8d60\u54c1\u90e8\u843d"
+    }
+}
