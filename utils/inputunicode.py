@@ -7,7 +7,7 @@ import time
 import os
 import sys
 
-__DEBUG__ = 0
+__DEBUG__ = 1
 
 def log(msg):
     if __DEBUG__:
@@ -54,6 +54,10 @@ def get_encoded_character(deviceid,text):
         run_cmd(cmd)
         run_cmd(click_dpad_space)
     cmd = "%s shell input text %r"  % (avd_device, text_list[-1].encode('unicode-escape'))
+    need_backslash = ['&', '*', '#']
+    for i in need_backslash:
+        cmd = cmd.replace(i, '\\'+i)
+    log(cmd)
     run_cmd(cmd)
 
     run_cmd(click_dpad_down)
@@ -64,4 +68,7 @@ def get_encoded_character(deviceid,text):
 
 
 if __name__ == '__main__':
-    get_encoded_character(deviceid, msg);
+    get_encoded_character(sys.argv[1], sys.argv[2]);
+ #   get_encoded_character(deviceid, msg);
+
+
