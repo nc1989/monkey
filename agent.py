@@ -386,11 +386,19 @@ class Agent(object):
             return None
         return get_view_text(view)
 
+    def restart_qq(self):
+        self.device.shell('am start -n com.tencent.mobileqq/'
+                          'com.tencent.mobileqq.activity.SplashActivity')
+        time.sleep(0.2)
+
     def current_activity(self):
         for i in xrange(50):
             try:
                 hViewer = self.device.getHierarchyViewer()
                 win_name = hViewer.getFocusedWindowName()
+                if not win_name.startswith('com.tencent.mobileqq'):
+                    self.restart_qq()
+                    continue
             except:
                 if i % 10 == 0:
                     logger.error("get hierarchy view failed!!!")
