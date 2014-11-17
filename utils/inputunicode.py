@@ -54,7 +54,7 @@ def get_encoded_character(deviceid,text):
         run_cmd(cmd)
         run_cmd(click_dpad_space)
     cmd = "%s shell input text %r"  % (avd_device, text_list[-1].encode('unicode-escape'))
-    need_backslash = ['&', '*', '#']
+    need_backslash = ['&', '*', '#', '(', ')', '>', '<', '|']
     for i in need_backslash:
         cmd = cmd.replace(i, '\\'+i)
     log(cmd)
