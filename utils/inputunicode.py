@@ -7,7 +7,7 @@ import time
 import os
 import sys
 
-__DEBUG__ = 1
+__DEBUG__ = 0
 
 def log(msg):
     if __DEBUG__:
