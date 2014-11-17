@@ -186,6 +186,7 @@ class Agent(object):
         self.nickname = None
         self.groups = {}
         self.load_groups()
+        self.interrupt = False
 
     def self_check(self):
         logger.info("自检开始...")
@@ -215,12 +216,16 @@ class Agent(object):
 
     def gen_groups(self):
         logger.info("遍历群并生成群信息")
+        self.interrupt = False
         if not self.goto('CONTACTS'):
             return
         if not self.goto('GROUP_LIST'):
             return
         last_end_group_name = ""
-        for i in xrange(20):
+        for i in xrange(50):
+            if self.interrupt:
+                logger.info("生成群列表被中断")
+                return
             if i != 0:
                 self.drag(1)
             groups = self.extract_groups()
@@ -241,6 +246,8 @@ class Agent(object):
 
     def walk_through_groups(self, drag, groups):
         for name, pos in groups:
+            if self.interrupt:
+                return
             if self.group_in_list(name):
                 logger.info("group: %s in list, skip", to_str(name))
                 continue
@@ -698,6 +705,21 @@ class Agent(object):
         logger.error('screen switch timeout!')
         return False
 
+    def watch_activity_switch(self, current, expect):
+        logger.info('activity switch from %s to %s', current, expect)
+        for i in xrange(50):
+            ca = self.current_activity()
+            if expect == ca:
+                logger.info('activity switch succeed!')
+                return True
+            elif ca != current:
+                # 没有跳转到特定页面不是由于卡顿造成的
+                # 而是跳转到了某个不认识的页面
+                logger.error('activity switch failed!')
+                return False
+            time.sleep(0.2)
+        logger.error('activity switch timeout!')
+
     def do_action(self, action, gid):
         """
         action有两种：
@@ -764,7 +786,9 @@ class Agent(object):
                     .children[5].children[2].children[0]
         qq_name = get_view_text(qq_name_view)
         self.touch_button('LEFT_UP')
-        time.sleep(0.5)
+        if not self.watch_activity_switch('FriendProfileCardActivity',
+                                          'SplashActivity'):
+            return None, None
         self.touch_pixel(410, 150)
         time.sleep(0.5)
         self.goto('CONTACTS')
