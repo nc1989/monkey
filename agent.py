@@ -220,8 +220,8 @@ class Agent(object):
             return
         if not self.goto('GROUP_LIST'):
             return
-        last_end_group_name = ""
-        for i in xrange(50):
+        last_end_group_name = "", ""
+        for i in xrange(30):
             if self.interrupt:
                 logger.info("生成群列表被中断")
                 return
@@ -230,11 +230,12 @@ class Agent(object):
             groups = self.extract_groups()
             if not groups:
                 continue
-            if str_equal(last_end_group_name, groups[-1][0]):
+            if str_equal(last_end_group_name[0], groups[-2][0]) and \
+               str_equal(last_end_group_name[1], groups[-1][0]):
                 logger.info("群列表已到底部，扫描完毕，一共发现%s个群",
                             to_str(len(self.groups)))
                 break
-            last_end_group_name = groups[-1][0]
+            last_end_group_name = groups[-2][0], groups[-1][0]
             self.walk_through_groups(i, groups)
 
     def group_in_list(self, gname):
