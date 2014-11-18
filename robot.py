@@ -82,6 +82,7 @@ class Robot(object):
             logger.error("qq[%s] or nickname[%s] is empty",
                          to_str(self.qq), to_str(self.nickname))
             sys.exit(1)
+        self.agent.load_groups()
 
         #Step 2. 注册到server
         self.register()
