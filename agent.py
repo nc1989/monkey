@@ -185,7 +185,6 @@ class Agent(object):
         self.qq = None
         self.nickname = None
         self.groups = {}
-        self.load_groups()
         self.interrupt = False
 
     def self_check(self):
