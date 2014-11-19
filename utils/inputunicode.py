@@ -36,6 +36,12 @@ def is_pure_alnum(text):
     return True
 
 
+def wrapper(text):
+    need_backslash = ['&', '*', '#', '(', ')', '>', '<', '|']
+    for j in need_backslash:
+       text = text.replace(j, '\\'+j)
+    return text
+
 def get_encoded_character(deviceid,text):
     avd_device = "adb -s %s" % deviceid
     start_app = "%s shell am start -an com.symbio.input.unicode/.Main" % avd_device
@@ -51,12 +57,11 @@ def get_encoded_character(deviceid,text):
     log(text_list)
     for t in text_list[:-1]:
         cmd = "%s shell input text %r"  % (avd_device, t.encode('unicode-escape'))
+        cmd = wrapper(cmd)
         run_cmd(cmd)
         run_cmd(click_dpad_space)
     cmd = "%s shell input text %r"  % (avd_device, text_list[-1].encode('unicode-escape'))
-    need_backslash = ['&', '*', '#', '(', ')', '>', '<', '|']
-    for i in need_backslash:
-        cmd = cmd.replace(i, '\\'+i)
+    cmd = wrapper(cmd)
     log(cmd)
     run_cmd(cmd)
 
@@ -68,7 +73,7 @@ def get_encoded_character(deviceid,text):
 
 
 if __name__ == '__main__':
-    get_encoded_character(sys.argv[1], sys.argv[2]);
- #   get_encoded_character(deviceid, msg);
+    get_encoded_character(sys.argv[1], sys.argv[2])
+    # get_encoded_character(deviceid, msg);
 
 
