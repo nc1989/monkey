@@ -34,8 +34,9 @@ function reinstall_all
     devices=$(adb devices|grep '^emulator'|awk '{print $1}')
 	for device in ${devices}
 	do
-		reinstall_qq ${device}
+		reinstall_qq ${device} &
 	done
+	wait
 }
 
 reinstall_all
