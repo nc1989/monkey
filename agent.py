@@ -195,12 +195,13 @@ class Agent(object):
 
     def dump_groups(self):
         group_list_file = "grouplist/%s" % self.qq
-        with open(group_list_file, 'w') as out_fd:
-            for g in self.groups.itervalues():
-                out_fd.write(g.id)
-                out_fd.write('\t')
-                out_fd.write(to_str(g.name))
-                out_fd.write('\n')
+        out_fd = open(group_list_file, 'w')
+        for g in self.groups.itervalues():
+            out_fd.write(g.id)
+            out_fd.write('\t')
+            out_fd.write(to_str(g.name))
+            out_fd.write('\n')
+        out_fd.close()
 
     def gen_groups(self):
         logger.info("遍历群并生成群信息")
