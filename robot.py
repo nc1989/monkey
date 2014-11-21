@@ -82,7 +82,7 @@ class Robot(object):
             logger.error("qq[%s] or nickname[%s] is empty",
                          to_str(self.qq), to_str(self.nickname))
             sys.exit(1)
-        self.agent.load_groups()
+        self.agent.load_group_list()
 
         #Step 2. 注册到server
         self.register()
@@ -147,6 +147,9 @@ class Robot(object):
             return -1, "msg is None"
         return self.agent.check_group_msg(msg)
 
+    #command for robot managing
+    def load_group_list(self):
+        return self.agent.load_group_list()
 
 if __name__ == '__main__':
     parser = OptionParser()

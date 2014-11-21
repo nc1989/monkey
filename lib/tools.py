@@ -4,6 +4,7 @@
 import urllib
 import urllib2
 import socket
+import os
 
 def url_get(url):
     try:
@@ -45,3 +46,9 @@ def to_str(s):
     if isinstance(s, unicode):
         return s.encode('utf8')
     return s
+
+def read_file(f):
+    if not os.path.isfile(f):
+        return []
+    with open(f) as in_fd:
+        return [l.strip() for l in in_fd]

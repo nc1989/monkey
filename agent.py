@@ -32,7 +32,7 @@ logging.getLogger('Agent').addHandler(console)
 import simplejson as json
 from optparse import OptionParser
 from utils import get_encoded_character
-from lib.tools import str_equal, to_unicode, to_str
+from lib.tools import str_equal, to_unicode, to_str, read_file
 
 BUTTON_LOCATION = {
     'LEFT_UP': (60, 70),
@@ -165,11 +165,9 @@ def extract_msg_layout(layout):
 
 
 class Group(object):
-    def __init__(self, name, id, drag, pos):
+    def __init__(self, id, name):
         self.id = id
         self.name = name
-        self.drag = drag
-        self.pos = pos
 
 
 class Agent(object):
@@ -181,37 +179,28 @@ class Agent(object):
         logger.info('connect to adb device')
         self.device = MonkeyRunner.waitForConnection(5, self.device_id)
         logger.info('connect to adb device done')
-        #self.easy_device = EasyMonkeyDevice(self.device)
         self.qq = None
         self.nickname = None
         self.groups = {}
         self.interrupt = False
 
-    def self_check(self):
-        logger.info("自检开始...")
-        #现在不需要切换几个屏幕试试了，只需要看看qq和nickname有没有初始化完成
-        return self.qq and self.nickname
-
-    def load_groups(self):
-        group_list_file = "grouplist/%s.grouplist" % self.qq
-        if not os.path.exists(group_list_file):
-            return
-        in_fd = open(group_list_file)
-        group_info = json.loads(in_fd.read().strip())
-        for k, v in group_info.iteritems():
-            self.groups[k] = Group(v['groupName'], k, v['drag'],
-                                   v['UILocation'])
-        in_fd.close()
+    def load_group_list(self):
+        group_list_file = "grouplist/%s" % self.qq
+        group_list = read_file(group_list_file)
+        for group in group_list:
+            ginfo = group.split('\t', 1)
+            gid = ginfo[0]
+            gname = ginfo[1] if len(ginfo) >= 2 else "Unknown"
+            self.groups[gid] = Group(gid, gname)
 
     def dump_groups(self):
-        group_list_file = "grouplist/%s.grouplist" % self.qq
-        group_info = {}
-        for k, v in self.groups.iteritems():
-            group_info[k] = {"groupName": v.name, "drag": v.drag,
-                             "UILocation": v.pos}
-        out_fd = open(group_list_file, "w")
-        out_fd.write(json.dumps(group_info, indent=4, sort_keys=True))
-        out_fd.close()
+        group_list_file = "grouplist/%s" % self.qq
+        with open(group_list_file, 'w') as out_fd:
+            for g in self.groups.itervalues():
+                out_fd.write(g.id)
+                out_fd.write('\t')
+                out_fd.write(to_str(g.name))
+                out_fd.write('\n')
 
     def gen_groups(self):
         logger.info("遍历群并生成群信息")
@@ -236,7 +225,7 @@ class Agent(object):
                             to_str(len(self.groups)))
                 break
             last_end_group_name = groups[-2][0], groups[-1][0]
-            self.walk_through_groups(i, groups)
+            self.walk_through_groups(groups)
 
     def group_in_list(self, gname):
         for g in self.groups.itervalues():
@@ -244,7 +233,7 @@ class Agent(object):
                 return True
         return False
 
-    def walk_through_groups(self, drag, groups):
+    def walk_through_groups(self, groups):
         for name, pos in groups:
             if self.interrupt:
                 return
@@ -257,7 +246,7 @@ class Agent(object):
                 continue
             gname, gid = self.get_group_name_id()
             if gname and gid:
-                self.update_groups(gname, gid, drag, pos)
+                self.update_groups(gname, gid)
             self.goto('GROUP_LIST')
 
     def extract_groups(self):
@@ -537,78 +526,12 @@ class Agent(object):
         self.goto('GROUP_CHAT')
         return group_name, group_id
 
-    def update_groups(self, gname, gid, drag, pos):
-        self.groups[gid] = Group(gname, gid, drag, pos)
+    def update_groups(self, gname, gid):
+        self.groups[gid] = Group(gname, gid)
         try:
             self.dump_groups()
         except:
             logger.warning("dump groups info failed!")
-
-    def enter_group_by_postion(self, gid, current_drag, drag, pos):
-        logger.info("根据位置进群[%s]，drag/pos=%s/%s", to_str(gid),
-                    to_str(drag), to_str(pos))
-        self.drag(drag)
-        if not self.switch_by_pixel('GROUP_LIST', 'GROUP_CHAT',
-                                    HORIZON_MID, pos):
-            return False
-
-        group_name, group_id = self.get_group_name_id()
-        #每次解析过一个群的name和id之后，本地存一下
-        if group_name and group_id:
-            total_drag = current_drag + drag
-            self.update_groups(group_name, group_id, total_drag, pos)
-
-        if group_id == gid:  # 成功返回True
-            logger.info("群号匹配成功")
-            return True
-        logger.warning("群号匹配不成功，%s!=%s", to_str(group_id), to_str(gid))
-
-        if group_name and group_id:
-            # 失败的话，更新groups信息，防止下次继续出错
-            self.update_groups(group_name, group_id, drag, pos)
-        self.goto("GROUP_LIST")  # 进群失败，退回到群列表页
-        return False
-
-    def enter_group_in_screen(self, current_drag, gname, gid):
-        #解析并验证当前屏幕上的群组
-        logger.info("解析当前屏幕所有群")
-        screen_groups = self.extract_groups()
-        for name, pos in screen_groups:
-            if str_equal(name, gname):
-                logger.info("发现名字[%s]匹配的群，进入验证群号", to_str(name))
-                if self.enter_group_by_postion(gid, current_drag, 0, pos):
-                    logger.info("恭喜，进群成功")
-                    return True
-        logger.info("当前屏幕没有找到指定群[%s,%s]", to_str(gid), to_str(gname))
-        return False
-
-    def enter_group_by_finding(self, current_drag, gid):
-        if not self.goto("GROUP_LIST"):
-            return
-        gname = self.groups[gid].name
-        logger.info("尝试查找并进入群[%s,%s]", to_str(gid), to_str(gname))
-        if self.enter_group_in_screen(current_drag, gname, gid):
-            return 0
-
-        #当前屏幕没有找到，往上翻一页去找
-        #如果当前屏幕是第一屏，就没有这个必要了
-        if current_drag != 0:
-            logger.info("往前翻1屏，继续查找")
-            self.drag(-1)
-            if self.enter_group_in_screen(current_drag, gname, gid):
-                return 0
-
-        #如果当前屏幕的前一屏幕也没有找到，进入后一屏去找
-        #如果之前往上翻过一屏了，现在需要往下翻两屏
-        drag = 2 if current_drag != 0 else 1
-        logger.info("往后翻%s屏，继续查找", to_str(gid))
-        self.drag(drag)
-        if self.enter_group_in_screen(current_drag, gname, gid):
-            return 0
-
-        logger.error("前后1屏都没找到对应群[%s,%s]，累死了，不找了",
-                     to_str(gid), to_str(gname))
-        return 1
 
     def cancel_search(self):
         search_cancel = self.retry_get_view_by_id('id/btn_cancel_search')
@@ -663,24 +586,6 @@ class Agent(object):
             return 4
         logger.info("进群[%s,%s]成功", to_str(gid), to_str(gname))
         return 0
-
-    def enter_group(self, gid):
-        if gid not in self.groups:
-            logger.error("群列表中没有该群[%s]的登记信息，不能进", to_str(gid))
-            return 1  # 暂时不接受进入无记录群的需求
-        group = self.groups[gid]
-        drag, pos, gname = group.drag, group.pos, group.name
-        logger.info("准备进入群[%s,%s]", to_str(gid), to_str(gname))
-        if not self.goto('CONTACTS'):
-            return 2
-        if not self.goto('GROUP_LIST'):
-            return 3
-        #前面两步操作保证进入的GROUP_LIST页面是没有被向下翻页过的
-        if self.enter_group_by_postion(gid, 0, drag, pos):
-            logger.info("根据位置进群[%s,%s]成功", to_str(gid), to_str(gname))
-            return 0
-        logger.info("根据位置进群[%s,%s]失败", to_str(gid), to_str(gname))
-        return self.enter_group_by_finding(drag, gid)
 
     def wait_screen(self, expect_screen):
         # 等待模拟器跳转到某个页面
