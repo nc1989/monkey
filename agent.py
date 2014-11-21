@@ -621,7 +621,7 @@ class Agent(object):
 
     def watch_activity_switch(self, current, expect):
         logger.info('activity switch from %s to %s', current, expect)
-        for i in xrange(50):
+        for i in xrange(20):
             ca = self.current_activity()
             if expect == ca:
                 logger.info('activity switch succeed!')
@@ -699,10 +699,17 @@ class Agent(object):
                     .children[0].children[0].children[0]\
                     .children[5].children[2].children[0]
         qq_name = get_view_text(qq_name_view)
+
         self.touch_button('LEFT_UP')
-        if not self.watch_activity_switch('FriendProfileCardActivity',
-                                          'SplashActivity'):
+        for i in xrange(3):
+            if self.watch_activity_switch(
+                'FriendProfileCardActivity', 'SplashActivity'):
+                break
+            self.touch_button('LEFT_UP')
+
+        if self.current_activity() != 'SplashActivity':
             return None, None
+
         self.touch_pixel(410, 150)
         time.sleep(0.5)
         self.goto('CONTACTS')
