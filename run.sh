@@ -21,7 +21,16 @@ function start_agent_test
 function start_robot
 {
     echo "start robot ..."
-    monkeyrunner robot.py --device $1
+	while true
+	do
+		monkeyrunner robot.py --device $1 > screenlog/$1 2>&1 &
+		ppid=$!
+		sleep 60
+		grep "register robot succeed" screenlog/$1 >/dev/null 2>&1 && break
+		echo "start robot failed! Retry..."
+		kill -9 $ppid
+	done
+	echo "start robot succeed!"
 }
 
 function main
