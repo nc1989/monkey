@@ -50,5 +50,7 @@ def to_str(s):
 def read_file(f):
     if not os.path.isfile(f):
         return []
-    with open(f) as in_fd:
-        return [l.strip() for l in in_fd]
+    in_fd = open(f)
+    ret = [l.strip() for l in in_fd]
+    in_fd.close()
+    return ret
