@@ -185,6 +185,7 @@ class Agent(object):
         self.interrupt = False
 
     def load_group_list(self):
+        logger.info('load group list')
         group_list_file = "grouplist/%s" % self.qq
         group_list = read_file(group_list_file)
         for group in group_list:
@@ -192,6 +193,7 @@ class Agent(object):
             gid = ginfo[0]
             gname = ginfo[1] if len(ginfo) >= 2 else "Unknown"
             self.groups[gid] = Group(gid, gname)
+        return 0
 
     def dump_groups(self):
         group_list_file = "grouplist/%s" % self.qq
