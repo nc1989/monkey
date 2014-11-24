@@ -21,6 +21,11 @@ function start_agent_test
 function start_robot
 {
     echo "start robot ..."
+	exist_job=`ps -elf | grep robot.py | grep $1 | awk '{print $4}'`
+	if [[ $exist_job ]];then
+		kill -9 $exist_job
+	fi
+	sleep 1
 	while true
 	do
 		monkeyrunner robot.py --device $1 > screenlog/$1 2>&1 &
