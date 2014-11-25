@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+
 from fabric.api import run, local, roles, env, cd
 env.hosts=[
     '10.128.38.132',
@@ -15,6 +17,8 @@ env.port=22
 #env.timeout=1
 #env.warn_only=True
 
+def ls():
+    local('touch 123.log')
 
 def pull():
     with cd('/home/chris/workspace/monkey-daemon'):
@@ -26,6 +30,6 @@ def clean():
         run('bash clean.sh')
 
 
-def robot():
+def robot(device):
     with cd('/home/chris/workspace/monkey-daemon'):
-        run('bash run.sh 5554 robot && sleep 1')
+        run('bash run.sh %s robot && sleep 1' % device)
