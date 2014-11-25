@@ -25,3 +25,7 @@ def clean():
     with cd('/home/chris/workspace/monkey-daemon'):
         run('bash clean.sh')
 
+
+def robot():
+    with cd('/home/chris/workspace/monkey-daemon'):
+        run('bash run.sh 5554 robot && sleep 1')
