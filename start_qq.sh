@@ -3,9 +3,14 @@
 function start_qq
 {
     device=$1
+	adb -s ${device} shell input keyevent KEYCODE_MENU
+	adb -s ${device} shell input keyevent KEYCODE_BACK
 	adb -s ${device} shell am start -n com.tencent.mobileqq/com.tencent.mobileqq.activity.SplashActivity
 	sleep 5
-	#adb -s ${device} shell input keyevent KEYCODE_BACK
+	adb -s ${device} shell input keyevent KEYCODE_BACK
+	adb -s ${device} shell input keyevent KEYCODE_BACK
+	adb -s ${device} shell input keyevent KEYCODE_BACK
+	adb -s ${device} shell am start -n com.tencent.mobileqq/com.tencent.mobileqq.activity.SplashActivity
 }
 
 function start_all_qq
