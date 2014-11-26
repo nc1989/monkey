@@ -144,7 +144,8 @@ SCREEN_SWITCH_ACTION = {
 
 def get_view_text(view):
     try:
-        return view.namedProperties.get('text:mText').value.encode('utf8')
+        return view.getText()
+        #return view.namedProperties.get('text:mText').value.encode('utf8')
     except:
         logger.warning("get view text failed!")
         return None
@@ -365,9 +366,11 @@ class Agent(object):
 
     def get_view_by_id(self, id):
         try:
-            hViewer = self.device.getHierarchyViewer()
-            view = hViewer.findViewById(id)
-            return view
+            vc = ViewClient(device=self.device, serialno=self.device_id)
+            return vc.findViewById(id)
+            #hViewer = self.device.getHierarchyViewer()
+            #view = hViewer.findViewById(id)
+            #return view
         except:
             logger.warning('get view by id[%s] failed!', id)
             return None
