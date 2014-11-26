@@ -34,12 +34,12 @@ def clean():
 
 def stop_qq():
     with cd('/home/chris/workspace/monkey-daemon'):
-        run('bash stop_qq.sh')
+        run('bash handle_qq.sh stop')
 
 
 def start_qq():
     with cd('/home/chris/workspace/monkey-daemon'):
-        run('bash start_qq.sh')
+        run('bash handle_qq.sh start')
 
 
 def robot(device):
