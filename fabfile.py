@@ -1,5 +1,7 @@
 # -*- coding:utf-8 -*-
 
+import time
+
 from fabric.api import run, local, roles, env, cd
 env.hosts=[
     '10.128.38.132',
@@ -33,3 +35,12 @@ def clean():
 def robot(device):
     with cd('/home/chris/workspace/monkey-daemon'):
         run('bash run.sh %s robot && sleep 1' % device)
+
+
+def restartQQ(device):
+    with cd('/home/chris/workspace/monkey-daemon'):
+        run('adb -s %s shell am force-stop com.tencent.mobileqq && sleep 1' % device)
+        time.sleep(3)
+        run('adb -s %s shell am start -n com.tencent.mobileqq/com.tencent.mobileqq.activity.SplashActivity && sleep 1' % device)
+        time.sleep(3)
+
