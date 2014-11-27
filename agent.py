@@ -469,6 +469,10 @@ class Agent(object):
             #如果发消息前不验证，那么先删除一下消息发送框的中原有内容
             self.delete_msg(20)
 
+        #防止本QQ屏蔽了该群，需要先点击一下，把提示信息消除掉
+        self.touch_button('INPUT')
+        time.sleep(0.2)
+
         self.long_touch_pixel(*BUTTON_LOCATION['INPUT'])
         time.sleep(0.2)
         self.touch_button('PASTE')
