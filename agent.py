@@ -158,9 +158,9 @@ def get_view_property(view, property):
 def extract_msg_layout(layout):
     sender, msg = None, None
     for elem in layout.children:
-        if elem.id == 'id/chat_item_nick_name':
+        if elem.getId() == 'id/chat_item_nick_name':
             sender = get_view_text(elem)[:-1]
-        elif elem.id == 'id/chat_item_content_layout':
+        elif elem.getId() == 'id/chat_item_content_layout':
             msg = get_view_text(elem)
     return sender, msg
 
