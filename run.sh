@@ -3,23 +3,24 @@
 function check_robot_status
 {
     log=$1
-    grep "com.android.chimpchat.adb" ${log} > /dev/null 2>&1 && return 1
+    grep "com.android.monkeyrunner.MonkeyRunnerOptions" ${log} > /dev/null 2>&1 && return 1
+    grep "com.android.chimpchat.adb.AdbChimpDevice" ${log} > /dev/null 2>&1 && return 1
     grep "register robot succeed" ${log} >/dev/null 2>&1 && return 0
     return 2
 }
 
 function wait_robot
 {
-    for((i=0;i<20;i++))
+    for((j=0;j<20;j++))
     do
-        check_robot_status
+        check_robot_status $1
         ret=$?
         if [[ $ret == 0 ]];then
             return 0
         elif [[ $ret == 1 ]];then
             return 1
         fi
-        sleep(3)
+        sleep 3
     done
     return 2
 }
@@ -27,7 +28,7 @@ function wait_robot
 function start_robot
 {
     echo "start robot ..."
-	exist_job=`ps -elf | grep robot.py | grep $1 | awk '{print $4}'`
+	exist_job=`ps -ef | grep robot.py | grep $1 | awk '{print $2}'`
 	if [[ $exist_job ]];then
 		kill -9 $exist_job
 	fi
@@ -36,7 +37,7 @@ function start_robot
 	do
 		nohup monkeyrunner robot.py --device $1 > screenlog/$1 2>&1 &
 		ppid=$!
-        wait_robot
+        wait_robot "screenlog/$1"
         ret=$?
         if [[ $ret == 0 ]];then
             echo "start robot succeed!"
@@ -47,6 +48,7 @@ function start_robot
             echo "start robot failed! Retry..."
         fi
         kill -9 $ppid
+        sleep 1
 	done
     echo "failed to start robot 5 times, abort"
     return 1
