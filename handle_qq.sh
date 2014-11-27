@@ -13,7 +13,7 @@ function start_qq
 	adb -s ${device} shell input keyevent KEYCODE_MENU
 	adb -s ${device} shell input keyevent KEYCODE_BACK
 	adb -s ${device} shell am start -n com.tencent.mobileqq/com.tencent.mobileqq.activity.SplashActivity
-	sleep 10
+	sleep 100
 	adb -s ${device} shell input keyevent KEYCODE_BACK
 	adb -s ${device} shell input keyevent KEYCODE_BACK
 	adb -s ${device} shell input keyevent KEYCODE_BACK
