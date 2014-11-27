@@ -144,7 +144,7 @@ SCREEN_SWITCH_ACTION = {
 
 def get_view_text(view):
     try:
-        return view.getText()
+        return view.getText().replace('\xfe', ' ')
         #return view.namedProperties.get('text:mText').value.encode('utf8')
     except:
         logger.warning("get view text failed!")
