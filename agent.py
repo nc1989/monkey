@@ -579,10 +579,13 @@ class Agent(object):
         return True
 
     def enter_group_v2(self, gid):
-        if gid not in self.groups:
-            logger.error("群列表中没有该群[%s]的登记信息，不能进", to_str(gid))
-            return 1  # 暂时不接受进入无记录群的需求
-        gname = self.groups[gid].name
+        #if gid not in self.groups:
+        #    logger.error("群列表中没有该群[%s]的登记信息，不能进", to_str(gid))
+        #    return 1  # 暂时不接受进入无记录群的需求
+        if gid in self.groups:
+            gname = self.groups[gid].name
+        else:
+            gname = "Unknown"
         logger.info("准备进入群[%s,%s]", to_str(gid), to_str(gname))
         if not self.goto('CONTACTS'):
             return 2
