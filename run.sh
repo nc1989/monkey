@@ -1,21 +1,27 @@
 #!/bin/bash
 
-function start_agent_check_group
+function check_robot_status
 {
-    echo "start agent ..."
-    monkeyrunner agent.py  --device $1 --test check_group
+    log=$1
+    grep "com.android.chimpchat.adb" ${log} > /dev/null 2>&1 && return 1
+    grep "register robot succeed" ${log} >/dev/null 2>&1 && return 0
+    return 2
 }
 
-function start_agent_gen_group
+function wait_robot
 {
-    echo "start agent ..."
-    monkeyrunner agent.py  --device $1 --test gen_group
-}
-
-function start_agent_test
-{
-    echo "start agent ..."
-    monkeyrunner agent.py  --device $1 --test test
+    for((i=0;i<20;i++))
+    do
+        check_robot_status
+        ret=$?
+        if [[ $ret == 0 ]];then
+            return 0
+        elif [[ $ret == 1 ]];then
+            return 1
+        fi
+        sleep(3)
+    done
+    return 2
 }
 
 function start_robot
@@ -26,31 +32,30 @@ function start_robot
 		kill -9 $exist_job
 	fi
 	sleep 1
-	while true
+    for((i=0;i<5;i++))
 	do
 		nohup monkeyrunner robot.py --device $1 > screenlog/$1 2>&1 &
 		ppid=$!
-		sleep 60
-		grep "register robot succeed" screenlog/$1 >/dev/null 2>&1 && break
-		echo "start robot failed! Retry..."
-		kill -9 $ppid
+        wait_robot
+        ret=$?
+        if [[ $ret == 0 ]];then
+            echo "start robot succeed!"
+            return 0
+        elif [[ $ret == 2 ]];then
+            echo "start robot timeout! Retry..."
+        else
+            echo "start robot failed! Retry..."
+        fi
+        kill -9 $ppid
 	done
-	echo "start robot succeed!"
+    echo "failed to start robot 5 times, abort"
+    return 1
 }
 
 function main
 {
     device=${1:-5554}
-    model=${2:-agent}
-    if [[ ${model} == "robot" ]];then
-        start_robot ${device}
-    elif [[ ${model} == "check" ]];then
-        start_agent_check_group ${device}
-    elif [[ ${model} == "group" ]];then
-        start_agent_gen_group ${device}
-    else
-        start_agent_test ${device}
-    fi
+    start_robot ${device}
 }
 
 main $@
