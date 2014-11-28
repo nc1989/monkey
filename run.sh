@@ -54,10 +54,26 @@ function start_robot
     return 1
 }
 
+function start_all_robots
+{
+    devices=$(adb devices|grep '^emulator'|awk '{print $1}'|awk -F"-" '{print $2}')
+	for device in ${devices}
+	do
+		start_robot ${device} &
+	done
+	wait
+}
+
 function main
 {
     device=${1:-5554}
-    start_robot ${device}
+    if [[ $device == "all" ]];then
+        echo "start all robots"
+        start_all_robots
+    else
+        echo "start robot $device"
+        start_robot ${device}
+    fi
 }
 
 main $@
