@@ -60,6 +60,7 @@ function start_all_robots
 	for device in ${devices}
 	do
 		start_robot ${device} &
+		sleep 20
 	done
 	wait
 }

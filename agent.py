@@ -88,6 +88,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
         'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
+        'PROFILE_CARD': ('BACK','BACK','MESSAGES')
     },
     'CONTACTS': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -98,6 +99,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
         'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
+        'PROFILE_CARD': ('BACK','BACK','MESSAGES')
     },
     'GROUP_LIST': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -108,6 +110,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
         'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
+        'PROFILE_CARD': ('BACK','BACK','MESSAGES')
     },
     'GROUP_CHAT': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -118,6 +121,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
         'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
+        'PROFILE_CARD': ('BACK','BACK','MESSAGES')
     },
     'GROUP_INFO': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -128,6 +132,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
         'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
+        'PROFILE_CARD': ('BACK','BACK','MESSAGES')
     },
     'GROUP_MEMBER': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -138,6 +143,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_MEMBER': None,
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
         'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
+        'PROFILE_CARD': ('BACK','BACK','MESSAGES')
     },
 }
 
@@ -427,7 +433,10 @@ class Agent(object):
         self.device.touch(x, y, MonkeyDevice.UP)
 
     def touch_button(self, name):
-        self.touch_pixel(*BUTTON_LOCATION[name])
+        if 'BACK' in name:
+            self.device.shell("input keyevent KEYCODE_BACK")
+        else:
+            self.touch_pixel(*BUTTON_LOCATION[name])
 
     def switch_by_pixel(self, cs, es, x, y):
         self.touch_pixel(x, y)
@@ -671,15 +680,21 @@ class Agent(object):
                 if cs in SCREENS_NEED_FOCUS and i != 0:
                     self.set_focus()
                 return True
-            action, expect_screen = SCREEN_SWITCH_ACTION[screen][cs]
+            action = SCREEN_SWITCH_ACTION[screen][cs][0:-1]
+            expect_screen = SCREEN_SWITCH_ACTION[screen][cs][-1]
             logger.debug("do_action: %s", action)
-            self.do_action(action, gid)
+            if isinstance(action, str):
+                self.do_action(action, gid)
+            elif isinstance(action, tuple):
+                for act in action:
+                    self.do_action(act, gid)
             if expect_screen:
                 if not self.watch_screen_switch(cs, expect_screen):
                     #有可能是因为进入一些异常界面，自我救赎吧亲
                     self.rescure()
                     return False
             else:
+                self.device.shell("input keyevent KEYCODE_BACK")
                 #有些按钮点完不一定跳到什么界面，不固定的，
                 #比如群通知界面，点完之后是回到原界面，原界面是不固定的
                 #直接进入下次循环就行
@@ -698,13 +713,15 @@ class Agent(object):
         self.device.press('KEYCODE_HOME', MonkeyDevice.DOWN_AND_UP, '')
 
     def get_qq_name_id(self):
-        self.goto('CONTACTS')
-        self.touch_button('LEFT_DOWN')
-        time.sleep(0.5)
-        self.touch_button('LEFT_UP')
-        time.sleep(0.5)
-        self.touch_button('QQ_NAME')
-        time.sleep(0.5)
+        cs = self.current_screen()
+        if cs != 'PROFILE_CARD':
+            self.goto('CONTACTS')
+            self.touch_button('LEFT_DOWN')
+            time.sleep(0.5)
+            self.touch_button('LEFT_UP')
+            time.sleep(0.5)
+            self.touch_button('QQ_NAME')
+            time.sleep(0.5)
         vc = ViewClient(device=self.device, serialno=self.device_id)
         qq_id = vc.findViewById('id/info').getText()
         qq_id = re.sub(r'\D', '', qq_id.strip())
