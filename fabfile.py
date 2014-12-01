@@ -26,26 +26,29 @@ def pull():
     with cd('/home/chris/workspace/monkey-daemon'):
         run('git pull')
 
-
 def clean():
     with cd('/home/chris/workspace/monkey-daemon'):
         run('bash clean.sh')
 
-
-def stop_qq():
+def stop_qqs():
     with cd('/home/chris/workspace/monkey-daemon'):
         run('bash handle_qq.sh stop')
 
-
-def start_qq():
+def start_qqs():
     with cd('/home/chris/workspace/monkey-daemon'):
         run('bash handle_qq.sh start')
 
-
-def robot(device):
+def stop_robots():
     with cd('/home/chris/workspace/monkey-daemon'):
-        run('bash run.sh %s robot && sleep 1' % device)
+        run("ps -ef | grep robot | grep -v grep | awk '{print $2}' | xargs kill")
 
+def start_robot(device):
+    with cd('/home/chris/workspace/monkey-daemon'):
+        run('bash run.sh %s && sleep 1' % device)
+
+def start_robots():
+    with cd('/home/chris/workspace/monkey-daemon'):
+        run('bash run.sh all && sleep 1')
 
 def restartQQ(device):
     with cd('/home/chris/workspace/monkey-daemon'):
@@ -53,6 +56,3 @@ def restartQQ(device):
         time.sleep(3)
         run('adb -s %s shell am start -n com.tencent.mobileqq/com.tencent.mobileqq.activity.SplashActivity && sleep 1' % device)
         time.sleep(3)
-
-
-
