@@ -572,6 +572,7 @@ class Agent(object):
             return False
         # 搜索到结果了，验证一下id对不对，结果示例: 北航人在点评(71771261)
         _text = get_view_text(search_result)
+        logger.debug('群搜索结果: %s', to_str(_text))
         start, end = _text.rfind('('), _text.rfind(')')
         if start < 0 or end < 0:
             logger.error("搜索结果[%s]解析群号失败", to_str(_text))
