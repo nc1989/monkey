@@ -5,7 +5,7 @@ import time
 from fabric.api import run, local, roles, env, cd
 env.hosts=[
     '10.128.38.132',
-    '10.128.39.83', '10.128.39.55', '10.128.38.199', '10.128.39.74',
+    '10.128.39.83', '10.128.39.55', '10.128.38.199', '10.128.39.51',
     '10.128.39.82',
     '10.128.39.21', '10.128.39.44', '10.128.39.45', '10.128.39.48',
     '10.128.39.46', '10.128.39.49', '10.128.39.75', '10.128.39.76',
@@ -25,6 +25,8 @@ def ls():
 def pull():
     with cd('/home/chris/workspace/monkey-daemon'):
         run('git pull')
+        run('pkill adb')
+        run('adb devices')
 
 def clean():
     with cd('/home/chris/workspace/monkey-daemon'):
