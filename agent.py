@@ -88,7 +88,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
         'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
-        'PROFILE_CARD': ('BACK','BACK','MESSAGES')
+        'PROFILE_CARD': ('BACK', 'BACK', 'MESSAGES')
     },
     'CONTACTS': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -99,7 +99,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
         'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
-        'PROFILE_CARD': ('BACK','BACK','MESSAGES')
+        'PROFILE_CARD': ('BACK', 'BACK', 'MESSAGES')
     },
     'GROUP_LIST': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -110,7 +110,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
         'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
-        'PROFILE_CARD': ('BACK','BACK','MESSAGES')
+        'PROFILE_CARD': ('BACK', 'BACK', 'MESSAGES')
     },
     'GROUP_CHAT': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -121,7 +121,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
         'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
-        'PROFILE_CARD': ('BACK','BACK','MESSAGES')
+        'PROFILE_CARD': ('BACK', 'BACK', 'MESSAGES')
     },
     'GROUP_INFO': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -132,7 +132,7 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
         'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
-        'PROFILE_CARD': ('BACK','BACK','MESSAGES')
+        'PROFILE_CARD': ('BACK', 'BACK', 'MESSAGES')
     },
     'GROUP_MEMBER': {
         'MESSAGES': ('MID_DOWN', 'CONTACTS'),
@@ -143,31 +143,34 @@ SCREEN_SWITCH_ACTION = {
         'GROUP_MEMBER': None,
         'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
         'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
-        'PROFILE_CARD': ('BACK','BACK','MESSAGES')
+        'PROFILE_CARD': ('BACK', 'BACK', 'MESSAGES')
     },
 }
 
 
-def get_view_text(view):
+def vc_view_text(view):
     try:
         return view.getText().replace('\xfe', ' ')
-        #return view.namedProperties.get('text:mText').value.encode('utf8')
     except:
-        logger.warning("get view text failed!")
+        logger.warning("get viewclient view text failed!")
         return None
 
 
-def get_view_property(view, property):
-    return view.namedProperties.get('layout:mLeft').value.encode('utf8')
+def mr_view_text(view):
+    try:
+        return view.namedProperties.get('text:mText').value
+    except:
+        logger.warning("get monkeyrunner view text failed!")
+        return None
 
 
 def extract_msg_layout(layout):
     sender, msg = None, None
     for elem in layout.children:
         if elem.getId() == 'id/chat_item_nick_name':
-            sender = get_view_text(elem)[:-1]
+            sender = vc_view_text(elem)[:-1]
         elif elem.getId() == 'id/chat_item_content_layout':
-            msg = get_view_text(elem)
+            msg = vc_view_text(elem)
     return sender, msg
 
 
@@ -260,7 +263,7 @@ class Agent(object):
             self.goto('GROUP_LIST')
 
     def extract_groups(self):
-        #troop_list = self.retry_get_view_by_id('id/qb_troop_list_view')
+        #troop_list = self.retry_get_vc_view_by_id('id/qb_troop_list_view')
         vc = ViewClient(device=self.device, serialno=self.device_id)
         troop_list = vc.findViewById('id/qb_troop_list_view')
         if troop_list is None:
@@ -269,12 +272,12 @@ class Agent(object):
         ret = []
         logger.debug("troop_list children size: %s", len(troop_list.children))
         for gv in troop_list.children:
-            #_text = get_view_text(gv.children[0])
+            #_text = vc_view_text(gv.children[0])
             _text = gv.children[0].getText()
             if _text:  # 排除我创建的群这样的元素
                 logger.debug("skip: %s", to_str(_text))
                 continue
-            #name = get_view_text(gv.children[1].children[2].children[1])
+            #name = vc_view_text(gv.children[1].children[2].children[1])
             name = gv.children[1].children[2].children[1].getText()
             top, height = gv.getY(), gv.getHeight()
             #pos = gv.top + gv.height / 2 + 182
@@ -289,18 +292,18 @@ class Agent(object):
 
     def extract_group_info(self):
         #调用这个函数时，需要已经位于群信息界面
-        xlist = self.retry_get_view_by_id('id/common_xlistview')
+        xlist = self.retry_get_vc_view_by_id('id/common_xlistview')
         if not xlist:
             logger.error("提取群信息失败，已重试!")
             return None, None
         nameAndId = xlist.children[0].children[2].children[0].children[1]
-        name = get_view_text(nameAndId.children[0])
-        groupId = get_view_text(nameAndId.children[1].children[0])
+        name = vc_view_text(nameAndId.children[0])
+        groupId = vc_view_text(nameAndId.children[1].children[0])
         return name, groupId
 
     def extract_group_msgs(self):
         logger.info("提取群消息")
-        listView = self.retry_get_view_by_id('id/listView1')
+        listView = self.retry_get_vc_view_by_id('id/listView1')
         if not listView:
             logger.error("提取群消息失败，已重试!")
             return []
@@ -329,7 +332,7 @@ class Agent(object):
 
     def extract_group_members(self):
         screen_members = []
-        content = self.get_view_by_id('id/content')
+        content = self.get_vc_view_by_id('id/content')
         members_list = content.children[0].children[1].children[0].children
         list_top = 113
         for member in members_list:
@@ -350,12 +353,12 @@ class Agent(object):
         return screen_members
 
     def get_member_id(self):
-        content = self.get_view_by_id('id/content')
+        content = self.get_vc_view_by_id('id/content')
         tmpqqid = ''
         try:
             _view = content.children[0].children[0].\
                 children[1].children[2].children[1]
-            tmpqqid = get_view_text(_view)
+            tmpqqid = vc_view_text(_view)
         except:
             return ''
         qqid = tmpqqid.split(' ')[0]
@@ -363,29 +366,48 @@ class Agent(object):
         self.goto('GROUP_MEMBER')
         return qqid
 
-    def retry_get_view_by_id(self, id):
+    def retry_get_vc_view_by_id(self, id):
         for i in xrange(3):
-            ret = self.get_view_by_id(id)
+            ret = self.get_vc_view_by_id(id)
             if ret:
                 return ret
         return None
 
-    def get_view_by_id(self, id):
+    def retry_get_mr_view_by_id(self, id):
+        for i in xrange(3):
+            ret = self.get_mr_view_by_id(id)
+            if ret:
+                return ret
+        return None
+
+    def get_vc_view_by_id(self, id):
         try:
             vc = ViewClient(device=self.device, serialno=self.device_id)
             return vc.findViewById(id)
-            #hViewer = self.device.getHierarchyViewer()
-            #view = hViewer.findViewById(id)
-            #return view
         except:
-            logger.warning('get view by id[%s] failed!', id)
+            logger.warning('get viewclient view by id[%s] failed!', id)
             return None
 
-    def get_view_text_by_id(self, id):
-        view = self.get_view_by_id(id)
+    def get_mr_view_by_id(self, id):
+        try:
+            hViewer = self.device.getHierarchyViewer()
+            view = hViewer.findViewById(id)
+            return view
+        except:
+            logger.warning('get monkeyrunner view by id[%s] failed!', id)
+            return None
+
+    def get_vc_view_text_by_id(self, id):
+        view = self.get_vc_view_by_id(id)
         if not view:
             return None
-        return get_view_text(view)
+        return vc_view_text(view)
+
+    def get_mr_view_text_by_id(self, id):
+        view = self.get_mr_view_by_id(id)
+        if not view:
+            return None
+        return mr_view_text(view)
 
     def restart_qq(self):
         self.device.shell('am start -n com.tencent.mobileqq/'
@@ -468,15 +490,51 @@ class Agent(object):
     def set_focus(self):
         self.drag(1, False)
 
-    def send_group_msg(self, msg, validate=True):
+    def validate_input_text_by_vc(self, msg):
+        logger.debug('validate msg by vc begin')
+        msg_to_send = self.get_vc_view_text_by_id('id/input')
+        if not msg_to_send:
+            #可能是消息没粘贴上、禁言或者语言输入打开了
+            logger.warning("ViewClient查找id/input元素失败")
+            send_btn = self.get_vc_view_text_by_id('id/fun_btn')
+            if str_equal("切换到文字输入", send_btn):
+                logger.debug("语音输入打开了，关闭之")
+                self.touch_button('REC_SEND')
+                time.sleep(0.5)
+                self.touch_button('MSG_SPACE')
+            return False, 0
+        #消息框有内容了，验证一下对不对
+        if not str_equal(msg_to_send, msg):
+            logger.warning("要发送的消息[%s]和输入框中的消息[%s]不一致",
+                           to_str(msg), to_str(msg_to_send))
+            return False, len(msg_to_send)
+        return True, 0
+
+    def validate_input_text_by_mr(self, msg):
+        logger.debug('validate msg by mr begin')
+        msg_to_send = self.get_mr_view_text_by_id('id/input')
+        if not msg_to_send:
+            #可能是消息没粘贴上、禁言或者语言输入打开了
+            logger.warning("Monkeyrunner查找id/input元素失败")
+            send_btn = self.get_mr_view_text_by_id('id/fun_btn')
+            if str_equal("切换到文字输入", send_btn):
+                logger.debug("语音输入打开了，关闭之")
+                self.touch_button('REC_SEND')
+                time.sleep(0.5)
+                self.touch_button('MSG_SPACE')
+            return False, 0
+        #消息框有内容了，验证一下对不对
+        if not str_equal(msg_to_send, msg):
+            logger.warning("要发送的消息[%s]和输入框中的消息[%s]不一致",
+                           to_str(msg), to_str(msg_to_send))
+            return False, len(msg_to_send)
+        return True, 0
+
+    def send_group_msg(self, msg):
         logger.info('send msg: %s', to_str(msg))
         get_encoded_character(self.device_id, to_unicode(msg))
         self.wait_screen('GROUP_CHAT')
         logger.debug('send_group_msg copy character done')
-
-        if not validate:
-            #如果发消息前不验证，那么先删除一下消息发送框的中原有内容
-            self.delete_msg(20)
 
         #防止本QQ屏蔽了该群，需要先点击一下，把提示信息消除掉
         time.sleep(0.5)
@@ -488,28 +546,30 @@ class Agent(object):
         self.touch_button('PASTE')
         logger.debug('send_group_msg click PASTE done')
 
-        if validate:
-            #验证消息
-            logger.debug('validate msg begin')
-            msg_to_send = self.get_view_text_by_id('id/input')
-            if not msg_to_send:  # 消息没粘贴上或者语言输入打开了
-                send_btn = self.get_view_text_by_id('id/fun_btn')
-                if str_equal("切换到文字输入", send_btn):
-                    self.touch_button('REC_SEND')
-                    time.sleep(0.5)
-                    self.touch_button('MSG_SPACE')
-                return 2
-            #消息框有内容了，验证一下对不对
-            if not str_equal(msg_to_send, msg):
-                logger.error("要发送的消息[%s]和输入框中的消息[%s]不一致",
-                             to_str(msg), to_str(msg_to_send))
-                #消息没发送要把残留的消息删掉
-                self.delete_msg(len(msg_to_send))
-                return 1
-            logger.debug('validate msg done')
+        #验证输入框中的内容是否和要发送的内容一致
+        """
+        因为有时候Monkeyrunner取输入框取不到，ViewClient会取到错误的文本
+        为了降低出错的概率，同时使用ViewClient和Monkeyrunner来验证消息，
+        只要有一个成功，就发送
+        """
+        #通过ViewClient去验证内容
+        status, msg_len1 = self.validate_input_text_by_vc(msg)
+        if status:
+            self.touch_button('SEND')
+            return 0
+        logger.error("通过ViewClient验证要发送的内容失败")
+        #通过Monkeyrunner去验证内容
+        status, msg_len2 = self.validate_input_text_by_mr(msg)
+        if status:
+            self.touch_button('SEND')
+            return 0
+        logger.error("通过Monkeyrunner验证要发送的内容失败")
 
-        self.touch_button('SEND')
-        return 0
+        msg_len = max(msg_len1, msg_len2)
+        if msg_len > 0:
+            #消息没发送要把残留的消息删掉
+            self.delete_msg(msg_len)
+        return 1
 
     def delete_msg(self, length):
         logger.info('delete msg, length: %s', length)
@@ -554,34 +614,41 @@ class Agent(object):
             logger.warning("dump groups info failed!")
 
     def cancel_search(self):
-        search_cancel = self.retry_get_view_by_id('id/btn_cancel_search')
+        search_cancel = self.retry_get_vc_view_by_id('id/btn_cancel_search')
         if search_cancel and search_cancel.getX() > HORIZON_MID:
             logger.info("取消搜索操作")
             self.touch_button("SEARCH_CANCEL")
+
+    @staticmethod
+    def split_group_id(text):
+        pro_ids = re.findall(r"\((.*)\)", text)
+        for _id in pro_ids[::-1]:
+            if _id.isdigit():
+                return _id
+        return None
 
     def enter_group_by_search(self, gid):
         self.touch_button('GROUP_SEARCH')
         time.sleep(0.5)
         self.device.type(gid)
         time.sleep(0.5)
-        search_result = self.retry_get_view_by_id('id/tv_name')
+        search_result = self.retry_get_vc_view_by_id('id/tv_name')
 
         if not search_result:  # 没有搜索到，点击取消
             logger.error("搜索结果查找id/tv_name失败，可能需要取消搜索")
             self.cancel_search()
             return False
         # 搜索到结果了，验证一下id对不对，结果示例: 北航人在点评(71771261)
-        _text = get_view_text(search_result)
+        _text = vc_view_text(search_result)
         logger.debug('群搜索结果: %s', to_str(_text))
-        start, end = _text.rfind('('), _text.rfind(')')
-        if start < 0 or end < 0:
+        _id = self.split_group_id(_text)
+        if not _id:
             logger.error("搜索结果[%s]解析群号失败", to_str(_text))
             self.cancel_search()
             return False
-        group_id = _text[start + 1:end]
-        if not str_equal(group_id, gid):
+        if not str_equal(_id, gid):
             logger.error("搜索结果的群号[%s]和需要进的群号[%s]不一致",
-                         to_str(group_id), to_str(gid))
+                         to_str(_id), to_str(gid))
             self.cancel_search()
             return False
 
@@ -726,15 +793,15 @@ class Agent(object):
         vc = ViewClient(device=self.device, serialno=self.device_id)
         qq_id = vc.findViewById('id/info').getText()
         qq_id = re.sub(r'\D', '', qq_id.strip())
-        qq_name_view = self.get_view_by_id('id/common_xlistview').children[0]\
+        qq_name_view = self.get_vc_view_by_id('id/common_xlistview').children[0]\
                     .children[0].children[0].children[0]\
                     .children[5].children[2].children[0]
-        qq_name = get_view_text(qq_name_view)
+        qq_name = vc_view_text(qq_name_view)
 
         self.touch_button('LEFT_UP')
         for i in xrange(3):
-            if self.watch_activity_switch(
-                'FriendProfileCardActivity', 'SplashActivity'):
+            if self.watch_activity_switch('FriendProfileCardActivity',
+                                          'SplashActivity'):
                 break
             self.touch_button('LEFT_UP')
 
