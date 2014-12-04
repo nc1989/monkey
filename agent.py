@@ -621,7 +621,7 @@ class Agent(object):
 
     @staticmethod
     def split_group_id(text):
-        pro_ids = re.findall(r"\((.*)\)", text)
+        pro_ids = re.findall(r"\((.*?)\)", text)
         for _id in pro_ids[::-1]:
             if _id.isdigit():
                 return _id
