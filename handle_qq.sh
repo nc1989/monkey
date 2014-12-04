@@ -20,24 +20,20 @@ function start_qq
 	adb -s ${device} shell am start -n com.tencent.mobileqq/com.tencent.mobileqq.activity.SplashActivity
 }
 
-function handle_qq
+function handle_qqs
 {
 	cmd=$1_qq
-	deviceid=emulator-$2
-	$cmd $deviceid &
+	if [[ $# -eq 1 ]];then
+		devices=$(adb devices|grep '^emulator'|awk '{print $1}')
+		for device in ${devices}
+		do
+			$cmd ${device} &
+		done
+	else
+		deviceid=emulator-$2
+		$cmd $deviceid &
+	fi
 	wait
 }
 
-function handle_all_qq
-{
-	cmd=$1_qq
-    devices=$(adb devices|grep '^emulator'|awk '{print $1}')
-	for device in ${devices}
-	do
-		$cmd ${device} &
-	done
-	wait
-}
-
-#handle_qq $@
-handle_all_qq $1
+handle_qqs $@
