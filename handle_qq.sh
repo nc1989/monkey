@@ -13,22 +13,24 @@ function start_qq
 	adb -s ${device} shell input keyevent KEYCODE_MENU
 	adb -s ${device} shell input keyevent KEYCODE_BACK
 	adb -s ${device} shell am start -n com.tencent.mobileqq/com.tencent.mobileqq.activity.SplashActivity
-	sleep 100
+	sleep 60
 	adb -s ${device} shell input keyevent KEYCODE_BACK
 	adb -s ${device} shell input keyevent KEYCODE_BACK
 	adb -s ${device} shell input keyevent KEYCODE_BACK
 	adb -s ${device} shell am start -n com.tencent.mobileqq/com.tencent.mobileqq.activity.SplashActivity
 }
 
-function handle_all_qq
+function handle_qq
 {
 	cmd=$1_qq
-    devices=$(adb devices|grep '^emulator'|awk '{print $1}')
-	for device in ${devices}
-	do
-		$cmd ${device} &
-	done
+	deviceid=emulator-$2
+    #devices=$(adb devices|grep '^emulator'|awk '{print $1}')
+	#for device in ${devices}
+	#do
+	#	$cmd ${device} &
+	#done
+	$cmd $deviceid &
 	wait
 }
 
-handle_all_qq $1
+handle_qq $@
