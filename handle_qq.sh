@@ -24,13 +24,20 @@ function handle_qq
 {
 	cmd=$1_qq
 	deviceid=emulator-$2
-    #devices=$(adb devices|grep '^emulator'|awk '{print $1}')
-	#for device in ${devices}
-	#do
-	#	$cmd ${device} &
-	#done
 	$cmd $deviceid &
 	wait
 }
 
-handle_qq $@
+function handle_all_qq
+{
+	cmd=$1_qq
+    devices=$(adb devices|grep '^emulator'|awk '{print $1}')
+	for device in ${devices}
+	do
+		$cmd ${device} &
+	done
+	wait
+}
+
+#handle_qq $@
+handle_all_qq $1
