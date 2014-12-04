@@ -27,7 +27,6 @@ def environment():
 
 def pull():
     with cd('/home/chris/workspace/monkey-daemon'):
-        time.sleep(1)
         run('git pull')
 
 def clean():
