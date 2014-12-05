@@ -8,6 +8,7 @@ function stop_qq
 	echo $deviceid
 	echo $device
 	adb -s ${deviceid} shell am force-stop com.tencent.mobileqq
+	sleep 5
 	ps -ef | grep 'emulator' | grep -v grep | grep $device | awk '{print $2}' | xargs kill
 }
 
