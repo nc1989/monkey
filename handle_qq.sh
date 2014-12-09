@@ -23,6 +23,7 @@ function start_qq
 	export DISPLAY=":0.0"
 	xterm -display $DISPLAY -e "emulator -avd $device -port $port" &
 	sleep 60
+	adb -s ${deviceid} shell input keyevent KEYCODE_HOME
 	adb -s ${deviceid} shell input keyevent KEYCODE_MENU
 	adb -s ${deviceid} shell input keyevent KEYCODE_BACK
 	adb -s ${deviceid} shell am start -n com.tencent.mobileqq/com.tencent.mobileqq.activity.SplashActivity
