@@ -6,8 +6,9 @@ import string
 import time
 import os
 import sys
+import json
 
-__DEBUG__ = 0
+__DEBUG__ = 1
 
 def log(msg):
     if __DEBUG__:
@@ -56,11 +57,11 @@ def get_encoded_character(deviceid,text):
     text_list = [x.encode('utf8') if is_pure_alnum(x) else x for x in text_list]
     log(text_list)
     for t in text_list[:-1]:
-        cmd = "%s shell input text %r"  % (avd_device, t.encode('unicode-escape'))
+        cmd = "%s shell input text %r"  % (avd_device, json.dumps(t)[1:-1])
         cmd = wrapper(cmd)
         run_cmd(cmd)
         run_cmd(click_dpad_space)
-    cmd = "%s shell input text %r"  % (avd_device, text_list[-1].encode('unicode-escape'))
+    cmd = "%s shell input text %r"  % (avd_device, json.dumps(text_list[-1])[1:-1])
     cmd = wrapper(cmd)
     log(cmd)
     run_cmd(cmd)
@@ -73,7 +74,7 @@ def get_encoded_character(deviceid,text):
 
 
 if __name__ == '__main__':
-    get_encoded_character(sys.argv[1], sys.argv[2])
-    # get_encoded_character(deviceid, msg);
+#    get_encoded_character(sys.argv[1], sys.argv[2])
+    get_encoded_character(deviceid, msg);
 
 
