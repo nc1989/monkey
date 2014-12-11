@@ -8,7 +8,7 @@ import os
 import sys
 import simplejson as json
 
-__DEBUG__ = 1
+__DEBUG__ = 0
 
 def log(msg):
     if __DEBUG__:
