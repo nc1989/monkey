@@ -48,6 +48,9 @@ def stop_emulator(device, deviceid):
     run("ps -ef | grep emulator | grep %s | grep %s | grep -v grep | \
         awk '{print $2}' | xargs kill" % (device, deviceid))
 
+def stop_emulators():
+    run("ps -ef|grep emulator|grep -v grep && ps -ef|grep emulator|grep -v grep|awk '{print $2}'|xargs kill")
+
 def start_qq(deviceid):
     with cd('/home/chris/workspace/monkey-daemon'):
         run('bash handle_qq.sh start %s' % deviceid)
@@ -69,8 +72,7 @@ def start_robots():
         run('bash run.sh all && sleep 1')
 
 def stop_robots():
-    run("ps -ef | grep robot | grep -v grep | \
-        awk '{print $2}' | xargs kill")
+    run("ps -ef | grep robot | grep -v grep && ps -ef|grep robot|grep -v grep| awk '{print $2}' | xargs kill")
 
 def restartQQ(deviceid):
     run('adb -s emulator-%s shell am force-stop \
