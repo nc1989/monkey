@@ -6,7 +6,7 @@ import string
 import time
 import os
 import sys
-import json
+import simplejson as json
 
 __DEBUG__ = 1
 
