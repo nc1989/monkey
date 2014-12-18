@@ -33,135 +33,46 @@ import simplejson as json
 from optparse import OptionParser
 from utils import get_encoded_character
 from lib.tools import str_equal, to_unicode, to_str, read_file
+from lib.screen import (
+    HORIZON_MID, BUTTON_LOCATION,
+    vc_view_text, mr_view_text,
+    get_vc_view_by_id, get_mr_view_by_id,
+    get_vc_view_text_by_id, get_mr_view_text_by_id,
+    find_path,
+)
 
-BUTTON_LOCATION = {
-    'LEFT_UP': (60, 70),
-    'RIGHT_UP': (450, 75),
 
-    'MID_DOWN': (240, 750),
-    'LEFT_DOWN': (80, 750),
-    'RIGHT_DOWN': (450, 750),
+def screen_on_splash(device, serialno):
+    logger.info("get vc on SplashActivity begin...")
+    vc = ViewClient(device=device, serialno=serialno)
+    logger.info("get vc on SplashActivity end")
 
-    'GROUPS': (300, 230),
-    'MY_GROUPS': (100, 150),  # 我的群
-    'GROUP_INPUT': (130, 710),
-    'NOTICE_ACCEPT': (240, 730),
+    tab_content = vc.findViewById('id/tabcontent')
+    x, y = tab_content.getXY()
+    if x > HORIZON_MID:
+        return 'PROFILE_ENTRY'
 
-    'QQ_NAME': (150, 150),
-    'QQ_START': (50, 750),
-    'INPUT': (165, 760),
-    'INPUT_END': (370, 780),
-    'PASTE': (165, 725),
-    'SEND': (430, 760),
-    'REC_SEND': (428, 467),  # 录音界面出来时，SEND按钮的位置
-    'MSG_SPACE': (240, 420),  # 录音界面出来后，点击消息的空白位置
-    'GROUP_SEARCH': (240, 220),
-    'SEARCH_RESULT': (240, 150),
-    'SEARCH_CANCEL': (425, 72),
-}
-
-HORIZON_MID = 240
-DRAG_POS_UP = (HORIZON_MID, 130)
-DRAG_POS_DOWN = (HORIZON_MID, 710)
+    tab_view = vc.findViewById('id/tabs')
+    if tab_view.children[0].isSelected():
+        return 'MESSAGES'
+    elif tab_view.children[1].isSelected():
+        return 'CONTACTS'
+    else:
+        return 'UNKNOWN_SCREEN'
 
 #定义界面对于的Activity，方便快速定位
 SCREENS = {
-    'SplashActivity': ('CONTACTS', 'MESSAGES'),
+    'SplashActivity': screen_on_splash,
     'TroopActivity': 'GROUP_LIST',
     'ChatActivity': 'GROUP_CHAT',
     'ChatSettingForTroop': 'GROUP_INFO',
-    'TroopMemberListActivity': 'GROUP_MEMBER',
-    'TroopMemberCardActivity': 'GROUP_MEMBER_INFO',
     'TroopNewcomerNoticeActivity': 'GROUP_NOTICE',
     'FriendProfileCardActivity': 'PROFILE_CARD',
+    'TroopMemberListActivity': 'GROUP_MEMBER',
+    'TroopMemberCardActivity': 'GROUP_MEMBER_INFO',
 }
 
 SCREENS_NEED_FOCUS = ('GROUP_CHAT', 'GROUP_LIST')
-
-SCREEN_SWITCH_ACTION = {
-    'MESSAGES': {
-        'MESSAGES': None,
-        'CONTACTS': ('LEFT_DOWN', 'MESSAGES'),
-        'GROUP_LIST': ('LEFT_UP', 'CONTACTS'),
-        'GROUP_CHAT': ('LEFT_UP', 'GROUP_LIST'),
-        'GROUP_INFO': ('LEFT_UP', 'GROUP_CHAT'),
-        'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
-        'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
-        'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
-        'PROFILE_CARD': ('BACK', 'BACK', 'MESSAGES')
-    },
-    'CONTACTS': {
-        'MESSAGES': ('MID_DOWN', 'CONTACTS'),
-        'CONTACTS': None,
-        'GROUP_LIST': ('LEFT_UP', 'CONTACTS'),
-        'GROUP_CHAT': ('LEFT_UP', 'GROUP_LIST'),
-        'GROUP_INFO': ('LEFT_UP', 'GROUP_CHAT'),
-        'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
-        'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
-        'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
-        'PROFILE_CARD': ('BACK', 'BACK', 'MESSAGES')
-    },
-    'GROUP_LIST': {
-        'MESSAGES': ('MID_DOWN', 'CONTACTS'),
-        'CONTACTS': ('GROUPS', 'GROUP_LIST'),
-        'GROUP_LIST': None,
-        'GROUP_CHAT': ('LEFT_UP', 'GROUP_LIST'),
-        'GROUP_INFO': ('LEFT_UP', 'GROUP_CHAT'),
-        'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
-        'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
-        'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
-        'PROFILE_CARD': ('BACK', 'BACK', 'MESSAGES')
-    },
-    'GROUP_CHAT': {
-        'MESSAGES': ('MID_DOWN', 'CONTACTS'),
-        'CONTACTS': ('GROUPS', 'GROUP_LIST'),
-        'GROUP_LIST': ('enter_group', 'GROUP_CHAT'),
-        'GROUP_CHAT': None,
-        'GROUP_INFO': ('LEFT_UP', 'GROUP_CHAT'),
-        'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
-        'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
-        'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
-        'PROFILE_CARD': ('BACK', 'BACK', 'MESSAGES')
-    },
-    'GROUP_INFO': {
-        'MESSAGES': ('MID_DOWN', 'CONTACTS'),
-        'CONTACTS': ('GROUPS', 'GROUP_LIST'),
-        'GROUP_LIST': ('enter_group', 'GROUP_CHAT'),
-        'GROUP_CHAT': ('RIGHT_UP', 'GROUP_INFO'),
-        'GROUP_INFO': None,
-        'GROUP_MEMBER': ('LEFT_UP', 'GROUP_INFO'),
-        'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
-        'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
-        'PROFILE_CARD': ('BACK', 'BACK', 'MESSAGES')
-    },
-    'GROUP_MEMBER': {
-        'MESSAGES': ('MID_DOWN', 'CONTACTS'),
-        'CONTACTS': ('GROUPS', 'GROUP_LIST'),
-        'GROUP_LIST': ('enter_group', 'GROUP_CHAT'),
-        'GROUP_CHAT': ('RIGHT_UP', 'GROUP_INFO'),
-        'GROUP_INFO': ('RIGHT_UP', 'GROUP_MEMBER'),
-        'GROUP_MEMBER': None,
-        'GROUP_MEMBER_INFO': ('LEFT_UP', 'GROUP_MEMBER'),
-        'GROUP_NOTICE': ('NOTICE_ACCEPT', ''),
-        'PROFILE_CARD': ('BACK', 'BACK', 'MESSAGES')
-    },
-}
-
-
-def vc_view_text(view):
-    try:
-        return view.getText().replace('\xfe', ' ')
-    except:
-        logger.warning("get viewclient view text failed!")
-        return None
-
-
-def mr_view_text(view):
-    try:
-        return view.namedProperties.get('text:mText').value
-    except:
-        logger.warning("get monkeyrunner view text failed!")
-        return None
 
 
 def extract_msg_layout(layout):
@@ -193,6 +104,18 @@ class Agent(object):
         self.nickname = None
         self.groups = {}
         self.interrupt = False
+
+    def get_vc_view_by_id(self, id, retry=1):
+        return get_vc_view_by_id(self.device, self.device_id, id, retry)
+
+    def get_mr_view_by_id(self, id, retry=1):
+        return get_mr_view_by_id(self.device, id, retry)
+
+    def get_vc_view_text_by_id(self, id, retry=1):
+        return get_vc_view_text_by_id(self.device, self.device_id, id, retry)
+
+    def get_mr_view_text_by_id(self, id, retry=1):
+        return get_mr_view_text_by_id(self.device, id, retry)
 
     def load_group_list(self):
         logger.info('load group list')
@@ -263,9 +186,7 @@ class Agent(object):
             self.goto('GROUP_LIST')
 
     def extract_groups(self):
-        #troop_list = self.retry_get_vc_view_by_id('id/qb_troop_list_view')
-        vc = ViewClient(device=self.device, serialno=self.device_id)
-        troop_list = vc.findViewById('id/qb_troop_list_view')
+        troop_list = self.get_vc_view_by_id('id/qb_troop_list_view', 3)
         if troop_list is None:
             logger.error("提取群列表元素失败，已重试!")
             return []
@@ -292,7 +213,7 @@ class Agent(object):
 
     def extract_group_info(self):
         #调用这个函数时，需要已经位于群信息界面
-        xlist = self.retry_get_vc_view_by_id('id/common_xlistview')
+        xlist = self.get_vc_view_by_id('id/common_xlistview', 3)
         if not xlist:
             logger.error("提取群信息失败，已重试!")
             return None, None
@@ -303,7 +224,7 @@ class Agent(object):
 
     def extract_group_msgs(self):
         logger.info("提取群消息")
-        listView = self.retry_get_vc_view_by_id('id/listView1')
+        listView = self.get_vc_view_by_id('id/listView1', 3)
         if not listView:
             logger.error("提取群消息失败，已重试!")
             return []
@@ -366,49 +287,6 @@ class Agent(object):
         self.goto('GROUP_MEMBER')
         return qqid
 
-    def retry_get_vc_view_by_id(self, id):
-        for i in xrange(3):
-            ret = self.get_vc_view_by_id(id)
-            if ret:
-                return ret
-        return None
-
-    def retry_get_mr_view_by_id(self, id):
-        for i in xrange(3):
-            ret = self.get_mr_view_by_id(id)
-            if ret:
-                return ret
-        return None
-
-    def get_vc_view_by_id(self, id):
-        try:
-            vc = ViewClient(device=self.device, serialno=self.device_id)
-            return vc.findViewById(id)
-        except:
-            logger.warning('get viewclient view by id[%s] failed!', id)
-            return None
-
-    def get_mr_view_by_id(self, id):
-        try:
-            hViewer = self.device.getHierarchyViewer()
-            view = hViewer.findViewById(id)
-            return view
-        except:
-            logger.warning('get monkeyrunner view by id[%s] failed!', id)
-            return None
-
-    def get_vc_view_text_by_id(self, id):
-        view = self.get_vc_view_by_id(id)
-        if not view:
-            return None
-        return vc_view_text(view)
-
-    def get_mr_view_text_by_id(self, id):
-        view = self.get_mr_view_by_id(id)
-        if not view:
-            return None
-        return mr_view_text(view)
-
     def restart_qq(self):
         self.device.shell('am start -n com.tencent.mobileqq/'
                           'com.tencent.mobileqq.activity.SplashActivity')
@@ -434,16 +312,14 @@ class Agent(object):
         cur_ac = self.current_activity()
         if not cur_ac:
             return None
-        screens = SCREENS[cur_ac]
-        if isinstance(screens, basestring):
-            return screens
+        if cur_ac not in SCREENS:
+            logger.warning('Activity[%s] not recognized', cur_ac)
+            return "UNKNOWN_SCREEN"
+        screen = SCREENS[cur_ac]
+        if callable(screen):
+            return screen(self.device, self.device_id)
         else:
-            # 现在一个activity对应多个screen的只有联系人、消息这一个
-            # 目前用不到消息那一栏，所以每次到这个activity的时候，点一下联系人
-            # 然后汇报位置为CONTACTS
-            self.touch_button('MID_DOWN')
-            time.sleep(0.5)
-            return 'CONTACTS'
+            return screen
 
     def touch_pixel(self, x, y):
         logger.debug('Touch: %s,%s', x, y)
@@ -468,11 +344,9 @@ class Agent(object):
         if down:
             logger.debug("drag one screen down")
             self.device.press('KEYCODE_PAGE_DOWN')
-            #self.device.drag(DRAG_POS_DOWN, DRAG_POS_UP, 0.2, 1)
         else:
             logger.debug("drag one screen up")
             self.device.press('KEYCODE_PAGE_UP')
-            #self.device.drag(DRAG_POS_UP, DRAG_POS_DOWN, 0.2, 1)
 
     def move_to_screen_end(self):
         self.device.press('KEYCODE_MOVE_END')
@@ -614,7 +488,7 @@ class Agent(object):
             logger.warning("dump groups info failed!")
 
     def cancel_search(self):
-        search_cancel = self.retry_get_vc_view_by_id('id/btn_cancel_search')
+        search_cancel = self.get_vc_view_by_id('id/btn_cancel_search', 3)
         if search_cancel and search_cancel.getX() > HORIZON_MID:
             logger.info("取消搜索操作")
             self.touch_button("SEARCH_CANCEL")
@@ -632,7 +506,7 @@ class Agent(object):
         time.sleep(0.5)
         self.device.type(gid)
         time.sleep(0.5)
-        search_result = self.retry_get_vc_view_by_id('id/tv_name')
+        search_result = self.get_vc_view_by_id('id/tv_name', 3)
 
         if not search_result:  # 没有搜索到，点击取消
             logger.error("搜索结果查找id/tv_name失败，可能需要取消搜索")
@@ -736,81 +610,73 @@ class Agent(object):
             method = getattr(self, action)  # 这里不做容错，直接异常比较好
             method(gid)
 
-    def goto(self, screen, gid=None):
+    def step_forward(self, step):
+        """
+        step是find_path返回的list中其中一个元素，格式为:
+            (screen_from, action, screen_to)
+        """
+        logger.debug('step forward: %s, %s, %s', *step)
+        self.touch_button(step[1])
+        return self.watch_screen_switch(step[0], step[2])
+
+    def follow_path(self, screen):
+        """
+        根据当前screen和目标screen寻路，然后按照步骤一步步走过去
+        如果有一步失败，直接返回，不做容错，容错交给上层函数
+
+        不能简单返回True or False，因为有些情况上层函数不需要容错+重试
+        """
+        logger.info('follow path to: %s', screen)
+        cs = self.current_screen()
+        if not cs:
+            logger.warning('Get current screen failed!')
+            return 1
+        if cs == "UNKNOWN_SCREEN":
+            self.rescure()
+            return -1
+
+        path = find_path(cs, screen)
+        if path is None:
+            logger.warning('Fail to find path from %s to %s', cs, screen)
+            return 1
+
+        for step in path:
+            if not self.step_forward(step):
+                self.rescure()
+                return -1
+        logger.info("goto: %s succeed!", screen)
+        return 0
+
+    def goto(self, screen):
         logger.info('goto: %s', screen)
-        for i in xrange(8):
-            cs = self.current_screen()
-            if not cs:
-                continue
-            logger.debug("current screen: %s", cs)
-            if cs == screen:
-                logger.info("goto: %s succeed!", cs)
-                if cs in SCREENS_NEED_FOCUS and i != 0:
-                    self.set_focus()
+
+        for i in xrange(3):
+            ret = self.follow_path(screen)
+            if ret == 0:
                 return True
-            action = SCREEN_SWITCH_ACTION[screen][cs][0:-1]
-            expect_screen = SCREEN_SWITCH_ACTION[screen][cs][-1]
-            logger.debug("do_action: %s", action)
-            if isinstance(action, str):
-                self.do_action(action, gid)
-            elif isinstance(action, tuple):
-                for act in action:
-                    self.do_action(act, gid)
-            if expect_screen:
-                if not self.watch_screen_switch(cs, expect_screen):
-                    #有可能是因为进入一些异常界面，自我救赎吧亲
-                    self.rescure()
-                    return False
-            else:
-                self.device.shell("input keyevent KEYCODE_BACK")
-                #有些按钮点完不一定跳到什么界面，不固定的，
-                #比如群通知界面，点完之后是回到原界面，原界面是不固定的
-                #直接进入下次循环就行
-                pass
+            elif ret > 0:
+                return False
         return False
 
     def rescure(self):
-        cs = self.current_screen()
-        if not cs:
-            return
-        if cs != "GROUP_LIST":
-            return
-        self.cancel_search()
+        self.device.press("KEYCODE_BACK")
 
     def goto_device_home(self):
         self.device.press('KEYCODE_HOME', MonkeyDevice.DOWN_AND_UP, '')
 
     def get_qq_name_id(self):
-        cs = self.current_screen()
-        if cs != 'PROFILE_CARD':
-            self.goto('CONTACTS')
-            self.touch_button('LEFT_DOWN')
-            time.sleep(0.5)
-            self.touch_button('LEFT_UP')
-            time.sleep(0.5)
-            self.touch_button('QQ_NAME')
-            time.sleep(0.5)
-        vc = ViewClient(device=self.device, serialno=self.device_id)
-        qq_id = vc.findViewById('id/info').getText()
+        if not self.goto('PROFILE_CARD'):
+            return None, None
+        qq_id = self.get_vc_view_text_by_id('id/info')
         qq_id = re.sub(r'\D', '', qq_id.strip())
-        qq_name_view = self.get_vc_view_by_id('id/common_xlistview').children[0]\
-                    .children[0].children[0].children[0]\
-                    .children[5].children[2].children[0]
+
+        qq_name_view = self.get_vc_view_by_id('id/common_xlistview')\
+            .children[0].children[0].children[0].children[0]\
+            .children[5].children[2].children[0]
         qq_name = vc_view_text(qq_name_view)
 
-        self.touch_button('LEFT_UP')
-        for i in xrange(3):
-            if self.watch_activity_switch('FriendProfileCardActivity',
-                                          'SplashActivity'):
-                break
-            self.touch_button('LEFT_UP')
-
-        if self.current_activity() != 'SplashActivity':
+        if not self.goto('CONTACTS'):
             return None, None
-
-        self.touch_pixel(410, 150)
-        time.sleep(0.5)
-        self.goto('CONTACTS')
         self.qq, self.nickname = int(qq_id), to_str(qq_name)
         return self.qq, self.nickname
 

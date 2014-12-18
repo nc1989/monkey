@@ -11,7 +11,7 @@ function check_robot_status
 
 function wait_robot
 {
-    for((j=0;j<20;j++))
+    for((j=0;j<60;j++))
     do
         check_robot_status $1
         ret=$?
