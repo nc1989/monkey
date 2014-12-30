@@ -653,6 +653,9 @@ class Agent(object):
         for i in xrange(3):
             ret = self.follow_path(screen)
             if ret == 0:
+                if screen == "GROUP_LIST":
+                    self.touch_button("GROUPS_IN_LIST")
+                    time.sleep(0.2)
                 return True
             elif ret > 0:
                 return False

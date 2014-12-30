@@ -95,6 +95,7 @@ BUTTON_LOCATION = {
     'GROUP_SEARCH': (240, 220),
     'SEARCH_RESULT': (240, 150),
     'SEARCH_CANCEL': (425, 72),
+    "GROUPS_IN_LIST": (120, 147), # 群列表页面上“我的群”按钮
 }
 
 
