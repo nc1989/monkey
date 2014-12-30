@@ -55,9 +55,17 @@ def start_qq(deviceid):
     with cd('/home/chris/workspace/monkey-daemon'):
         run('bash handle_qq.sh start %s' % deviceid)
 
+def start_qqs():
+    with cd('/home/chris/workspace/monkey-daemon'):
+        run('bash handle_qq.sh start')
+
 def stop_qq(deviceid):
     with cd('/home/chris/workspace/monkey-daemon'):
         run('bash handle_qq.sh stop %s' % deviceid)
+
+def stop_qqs():
+    with cd('/home/chris/workspace/monkey-daemon'):
+        run('bash handle_qq.sh stop')
 
 def start_robot(deviceid):
     with cd('/home/chris/workspace/monkey-daemon'):
