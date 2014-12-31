@@ -2,7 +2,7 @@
 
 import time
 
-from fabric.api import run, local, roles, env, cd
+from fabric.api import run, local, roles, env, cd, hosts, put
 env.hosts=[
     '10.128.39.2',
     '10.128.39.83', '10.128.39.55', '10.128.38.199', '10.128.39.51',
@@ -28,6 +28,20 @@ def environment():
 def pull():
     with cd('/home/chris/workspace/monkey-daemon'):
         run('git pull')
+
+@hosts('10.128.39.83', '10.128.39.55', '10.128.38.199', '10.128.39.51', '10.128.39.82', '10.128.39.2')
+def install_wechat():
+    with cd('/home/chris/workspace/monkey-daemon'):
+        run('adb -s emulator-5554 install qq_apk/weixin600android501.apk')
+        run('adb -s emulator-5556 install qq_apk/weixin600android501.apk')
+        run('adb -s emulator-5558 install qq_apk/weixin600android501.apk')
+        run('adb -s emulator-5560 install qq_apk/weixin600android501.apk')
+        run('adb -s emulator-5562 install qq_apk/weixin600android501.apk')
+
+@hosts('10.128.39.83', '10.128.39.55', '10.128.38.199', '10.128.39.51', '10.128.39.82', '10.128.39.2')
+def import_contacts():
+    with cd('/home/chris/workspace/monkey-daemon'):
+        put('tel', 'utils/tel')
 
 def clean():
     with cd('/home/chris/workspace/monkey-daemon'):
