@@ -21,7 +21,7 @@ function import_contacts
     lines=100
     for((i=0;i<$2;i++))
     do
-        emu_index=$((5554+2*i))
+        emu_index=$((5554+2*$i))
         echo $(($index+$i*$lines)) $(($index+$i*$lines+$lines-1)) 
         rm -f contacts.vcf
         create_vcf tel $(($index+$i*$lines)) $(($index+$i*$lines+$lines-1)) >> contacts.vcf
