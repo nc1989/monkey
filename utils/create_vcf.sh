@@ -34,7 +34,7 @@ function import_contacts
 function main
 {
     main_index=$1
-    import_contacts $main_index 5
+    import_contacts $main_index $2
 }
 
 main $@
