@@ -25,10 +25,10 @@ function import_contacts
         echo $(($index+$i*$lines)) $(($index+$i*$lines+$lines-1)) 
         rm -f contacts.vcf
         create_vcf tel $(($index+$i*$lines)) $(($index+$i*$lines+$lines-1)) >> contacts.vcf
-        adb -s emulator-$device shell pm clear com.android.providers.contacts
-        adb -s emulator-"$emu_index" push contacts.vcf /sdcard/contacts.vcf
+        adb -s emulator-$emu_index shell pm clear com.android.providers.contacts
+        adb -s emulator-$emu_index push contacts.vcf /sdcard/contacts.vcf
         sleep 3
-        adb -s emulator-$device shell am start -t "text/x-vcard" -d "file:///sdcard/contacts.vcf" -a android.intent.action.VIEW com.android.contacts
+        adb -s emulator-$emu_index shell am start -t "text/x-vcard" -d "file:///sdcard/contacts.vcf" -a android.intent.action.VIEW com.android.contacts
     done
 }
 function main
