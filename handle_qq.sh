@@ -39,6 +39,8 @@ function start_qq
 	adb -s ${deviceid} shell input keyevent KEYCODE_BACK
 	adb -s ${deviceid} shell input keyevent KEYCODE_BACK
 	adb -s ${deviceid} shell am start -n com.tencent.mobileqq/com.tencent.mobileqq.activity.SplashActivity
+
+	./run.sh ${port}
 }
 
 function handle_qqs
