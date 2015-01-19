@@ -70,8 +70,8 @@ def net_command():
 
 class Robot(object):
     def __init__(self, device, port):
-        config = self.load_config()
-        self.robot_server = config["server"]
+        # config = self.load_config()
+        self.robot_server = "192.168.217.191"
         self.port = port
         # 以上这几步不做异常检查了，如果配置有误直接退出
         #Step 1. 创建agent，用于操作模拟器
@@ -98,15 +98,15 @@ class Robot(object):
             time.sleep(30)
             logger.info("job running...")
 
-    def load_config(self):
-        config_file = "./config.json"
-        if not os.path.isfile(config_file):
-            logger.error("config file[%s] not exist!", config_file)
-            sys.exit(1)
-        f = open(config_file, "r")
-        config = json.loads(f.read().strip())
-        f.close()
-        return config
+    # def load_config(self):
+    #     config_file = "./config.json"
+    #     if not os.path.isfile(config_file):
+    #         logger.error("config file[%s] not exist!", config_file)
+    #         sys.exit(1)
+    #     f = open(config_file, "r")
+    #     config = json.loads(f.read().strip())
+    #     f.close()
+    #     return config
 
     def register(self):
         logger.info("register robot to: %s", self.robot_server)
