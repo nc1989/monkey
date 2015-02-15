@@ -411,6 +411,8 @@ class Agent(object):
         logger.debug('send_group_msg copy character done')
 
         #防止本QQ屏蔽了该群，需要先点击一下，把提示信息消除掉
+        time.sleep(10)
+
         time.sleep(0.5)
         self.touch_button('INPUT')
         time.sleep(0.5)
