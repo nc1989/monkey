@@ -76,5 +76,5 @@ function main
         start_robot ${device}
     fi
 }
-
+cd $(dirname $0)
 main $@
